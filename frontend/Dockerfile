@@ -1,22 +1,29 @@
-# Use official Node.js LTS image as base
-FROM node:alpine
+# Build stage
+FROM node:current-alpine as build
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
 
-# Install dependencies
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json ./
+
+# Clean npm cache and install dependencies
 RUN npm install
 
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
+# Build the app
 RUN npm run build
 
+# Production stage
 FROM nginx:alpine
 
-COPY --from=build /dist /usr/share/nginx/html
-COPY --from=build /nginx.conf /etc/nginx/nginx.conf
+# Copy built assets
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
-# Start the application
+
 CMD ["nginx", "-g", "daemon off;"]

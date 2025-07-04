@@ -8,6 +8,14 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+frontend/node_modules
+frontend/build
+frontend/dist
+backend/node_modules
+docker/node_modules
+docker-compose/node_modules
+docker-compose-frontend/node_modules
+docker-compose-backend/node_modules
 dist
 dist-ssr
 *.local
