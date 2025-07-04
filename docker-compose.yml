@@ -2,14 +2,15 @@ version: '3.8'
 
 networks:
   dev:
+    driver: bridge
 
 services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"  # Fixed port mapping typo
+      - "80:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - frontend
       - backend
@@ -17,11 +18,12 @@ services:
       - dev
 
   frontend:
-    image: node:alpine
-    working_dir: /usr/src/app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     volumes:
-      - ./:/usr/src/app
-    command: sh -c "npm install && npm run dev"
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
       - "3000:3000"
     environment:
@@ -34,6 +36,7 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./backend:/usr/src/app
+      - /usr/src/app/node_modules
     command: sh -c "npm install && npm run dev"
     ports:
       - "3001:3001"

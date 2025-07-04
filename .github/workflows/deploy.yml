@@ -25,36 +25,37 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Install required packages
+            # Update system and install dependencies
             sudo yum update -y
             sudo yum install -y git docker
 
-            # Start and enable Docker
+            # Configure Docker
             sudo systemctl start docker
             sudo systemctl enable docker
-
-            # Fix Docker permissions
             sudo usermod -aG docker $USER
-            sudo chmod 666 /var/run/docker.sock
+            newgrp docker
 
             # Install Docker Compose
-            if ! command -v docker-compose &> /dev/null; then
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-            fi
+            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
-            # Clone or pull repository
-            if [ ! -d "~/RTK-Query" ]; then
-              git clone https://github.com/yourusername/RTK-Query.git ~/RTK-Query
+            # Setup application directory
+            APP_DIR=~/RTK-Query
+            if [ ! -d "$APP_DIR" ]; then
+              git clone https://github.com/${GITHUB_REPOSITORY}.git $APP_DIR
             else
-              cd ~/RTK-Query
-              git pull
+              cd $APP_DIR
+              git fetch --all
+              git reset --hard origin/main
             fi
 
-            # Deploy application
-            cd ~/RTK-Query
-            sudo docker-compose down
-            sudo docker-compose up --build -d
+            # Deploy using Docker Compose
+            cd $APP_DIR
+            docker-compose down
+            docker-compose pull
+            docker-compose up --build -d
 
-            # Clean up
-            sudo docker image prune -f
+            # Cleanup
+            docker system prune -af --volumes
+            docker image prune -af
