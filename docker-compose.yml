@@ -1,0 +1,46 @@
+version: '3.8'
+
+networks:
+  dev:
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"  # Fixed port mapping typo
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - dev
+
+  frontend:
+    image: node:alpine
+    working_dir: /usr/src/app
+    volumes:
+      - ./:/usr/src/app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - dev
+
+  backend:
+    image: node:alpine
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend:/usr/src/app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+    networks:
+      - dev
+
+volumes:
+  db_data:

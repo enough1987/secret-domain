@@ -23,7 +23,26 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
-      port: 3000,
-      open: true,
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true,
+    open: true,
+    https: false,
+    hmr: {
+      clientPort: 3000,
+      host: '0.0.0.0',
+      protocol: 'ws'
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    },
+    allowedHosts: [
+      'ec2-13-60-184-124.eu-north-1.compute.amazonaws.com',
+      'localhost'
+    ]
   },
 })

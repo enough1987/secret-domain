@@ -1,9 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { IPhoto, ITodo } from './models'
+import { type IPhoto, type ITodo } from './models'
 
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:3001' }),
+  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
   tagTypes: ['todos', 'photos'],
   endpoints: (builder) => ({
     getTodos: builder.query<ITodo[], number | void>({
