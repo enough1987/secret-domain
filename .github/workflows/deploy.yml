@@ -56,6 +56,13 @@ jobs:
             docker-compose pull
             docker-compose up --build -d
 
-            # Cleanup
-            docker system prune -af --volumes
-            docker image prune -af
+            # Deploy using Docker Compose
+            docker-compose down || true
+            docker-compose pull
+            docker-compose up --build -d
+
+            # Show deployment status
+            echo "Docker Compose Status:"
+            docker-compose ps
+            echo "Docker Logs:"
+            docker-compose logs
