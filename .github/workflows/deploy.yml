@@ -7,10 +7,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -26,53 +27,53 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            set -e  # Exit on any error
+            set -ex  # Exit on error and print commands
 
             # Update system and install dependencies
             sudo yum update -y
             sudo yum install -y git docker
 
-            # Configure Docker
-            sudo systemctl start docker
-            sudo systemctl enable docker
-            sudo usermod -aG docker $USER
+            # Configure Git credentials
+            git config --global credential.helper store
+            echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
-            # Install Docker Compose
-            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-
-            # Setup and verify application directory
+            # Setup application directory
             APP_DIR=~/RTK-Query
             echo "Deploying to $APP_DIR"
 
+            # Remove existing directory if corrupted
+            if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
+              echo "Removing invalid repository..."
+              rm -rf "$APP_DIR"
+            fi
+
             # Clone or update repository
             if [ ! -d "$APP_DIR" ]; then
-              echo "Cloning repository..."
-              git clone https://github.com/${GITHUB_REPOSITORY}.git $APP_DIR
+              echo "Cloning fresh repository..."
+              git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git "$APP_DIR"
             else
               echo "Updating existing repository..."
-              cd $APP_DIR
-              git fetch --all
+              cd "$APP_DIR"
+              git fetch origin
               git reset --hard origin/main
             fi
 
-            # Verify docker-compose.yml exists
-            cd $APP_DIR
+            # Verify repository and files
+            cd "$APP_DIR"
+            ls -la
+
             if [ ! -f "docker-compose.yml" ]; then
-              echo "Error: docker-compose.yml not found in $(pwd)"
-              ls -la
+              echo "Error: docker-compose.yml not found!"
               exit 1
             fi
 
-            # Deploy application
-            echo "Starting deployment with Docker Compose..."
+            # Deploy with Docker Compose
             docker-compose down || true
             docker-compose pull
             docker-compose up --build -d
 
             # Verify deployment
-            echo "Checking deployment status..."
+            echo "Deployment status:"
             docker-compose ps
-            docker ps -a
+            echo "Container logs:"
             docker-compose logs
