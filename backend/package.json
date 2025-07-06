@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "json-server --watch db.json --port 3001"
+    "dev": "json-server --host 0.0.0.0 --watch db.json --port 3001"
   },
   "dependencies": {
     "json-server": "^0.17.4"

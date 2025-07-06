@@ -45,8 +45,6 @@ services:
         read_only: false
     command: >
       sh -c "npm install && npm run dev"
-    ports:
-      - "0.0.0.0:3001:3001"  # Bind to all interfaces
     environment:
       - NODE_ENV=development
       - LOG_DIR=/usr/src/app/logs
@@ -71,8 +69,6 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
-    ports:
-      - "0.0.0.0:3000:3000"  # Bind to all interfaces
     environment:
       - NODE_ENV=development
       - DEBUG=vite:*
