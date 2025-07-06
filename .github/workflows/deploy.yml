@@ -29,9 +29,29 @@ jobs:
           script: |
             set -ex  # Exit on error and print commands
 
-            # Update system and install dependencies
+            # Install required packages
             sudo yum update -y
-            sudo yum install -y git docker
+            sudo yum install -y git docker firewalld curl wget
+
+            # Configure firewall
+            echo "Configuring firewall..."
+            sudo systemctl start firewalld
+            sudo systemctl enable firewalld
+            sudo firewall-cmd --permanent --add-port=80/tcp
+            sudo firewall-cmd --permanent --add-port=3000/tcp
+            sudo firewall-cmd --permanent --add-port=3001/tcp
+            sudo firewall-cmd --reload
+
+            # Install Docker Compose
+            echo "Installing Docker Compose..."
+            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+            # Start and enable Docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker $USER
 
             # Configure Git credentials
             git config --global credential.helper store
@@ -79,24 +99,26 @@ jobs:
               exit 1
             fi
 
-            # Deploy with Docker Compose
-            echo "Starting deployment..."
+            # Verify network configuration
+            echo "Checking network configuration..."
+            sudo netstat -tulpn
+            curl -v localhost:80 || true
+
+            # Deploy with enhanced logging
+            cd "$APP_DIR"
+            echo "Starting deployment from $(pwd)"
+            docker-compose config
             docker-compose pull
             docker-compose up --build -d
 
-            # Wait for services to be ready
-            echo "Waiting for services to start..."
-            sleep 10
-
-            # Verify deployment
-            echo "Checking deployment status..."
+            # Enhanced verification
+            echo "Deployment verification:"
             docker-compose ps
-            docker ps -a  # Show all containers including stopped ones
-
-            # Check container health
-            echo "Container logs:"
+            docker ps -a
+            docker network ls
             docker-compose logs
 
-            # Verify nginx is responding
-            echo "Testing nginx:"
-            curl -v localhost:80
+            # Test external access
+            echo "Testing external access:"
+            curl -v http://localhost:80
+            curl -v http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):80
