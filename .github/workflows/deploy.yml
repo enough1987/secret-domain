@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -25,6 +26,8 @@ jobs:
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            set -e  # Exit on any error
+
             # Update system and install dependencies
             sudo yum update -y
             sudo yum install -y git docker
@@ -33,36 +36,43 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
             sudo usermod -aG docker $USER
-            newgrp docker
 
             # Install Docker Compose
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-            # Setup application directory
+            # Setup and verify application directory
             APP_DIR=~/RTK-Query
+            echo "Deploying to $APP_DIR"
+
+            # Clone or update repository
             if [ ! -d "$APP_DIR" ]; then
+              echo "Cloning repository..."
               git clone https://github.com/${GITHUB_REPOSITORY}.git $APP_DIR
             else
+              echo "Updating existing repository..."
               cd $APP_DIR
               git fetch --all
               git reset --hard origin/main
             fi
 
-            # Deploy using Docker Compose
+            # Verify docker-compose.yml exists
             cd $APP_DIR
-            docker-compose down
-            docker-compose pull
-            docker-compose up --build -d
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "Error: docker-compose.yml not found in $(pwd)"
+              ls -la
+              exit 1
+            fi
 
-            # Deploy using Docker Compose
+            # Deploy application
+            echo "Starting deployment with Docker Compose..."
             docker-compose down || true
             docker-compose pull
             docker-compose up --build -d
 
-            # Show deployment status
-            echo "Docker Compose Status:"
+            # Verify deployment
+            echo "Checking deployment status..."
             docker-compose ps
-            echo "Docker Logs:"
+            docker ps -a
             docker-compose logs
