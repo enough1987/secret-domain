@@ -133,7 +133,6 @@ jobs:
             # Test external access
             echo "Testing external access:"
             curl -v http://localhost:80
-            curl -v http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4):80
 
             # Add Docker login if using private images
             echo "Logging into Docker..."
