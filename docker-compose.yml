@@ -11,11 +11,9 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./logs:/var/log/nginx
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    environment:
+      - NGINX_ENTRYPOINT_QUIET_LOGS=0
+      - NGINX_ERROR_LOG_LEVEL=debug
     depends_on:
       - frontend
       - backend
@@ -26,6 +24,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     image: node:current-alpine
@@ -34,6 +37,7 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
+      - ./logs:/usr/src/app/logs
       - type: bind
         source: ./backend/db.json
         target: /usr/src/app/db.json
@@ -44,6 +48,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
+      - LOG_DIR=/usr/src/app/logs
     networks:
       - dev
     healthcheck:
@@ -53,6 +58,11 @@ services:
       retries: 3
     tty: true
     stdin_open: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -63,6 +73,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
+      - DEBUG=vite:*
+      - LOG_DIR=/app/logs
     networks:
       - dev
     depends_on:
@@ -72,3 +84,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

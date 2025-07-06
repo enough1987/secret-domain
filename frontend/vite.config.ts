@@ -19,7 +19,7 @@ export default defineConfig(({ mode, command }) => {
   const isPreview = command === 'serve' && mode === 'production'
   
   // Always use Docker service name in production/preview
-  const backendUrl = isProduction || isPreview
+  const backendUrl = isProduction && !isPreview
     ? 'http://backend:3001'    // Docker environment
     : 'http://localhost:3001'  // Local development
 
@@ -43,10 +43,9 @@ export default defineConfig(({ mode, command }) => {
       process.stdout.write(`[Proxy] ${path} -> ${newPath} (${backendUrl})\n`)
       return newPath
     },
-    configure: (proxy, _options) => {
-
-      proxy.on('error', (err: Error, _req: any, res: any) => {
-        process.stderr.write(`[Proxy Error] ${err.message}\n`)
+    configure: (proxy) => {
+      proxy.on('error', (err: Error, _req, res) => {
+        process.stdout.write(`[Proxy Error] ${err.message}\n`)
         // Send error response instead of hanging
         if (!res.headersSent) {
           res.writeHead(502, {
@@ -59,7 +58,7 @@ export default defineConfig(({ mode, command }) => {
           }))
         }
       });
-      proxy.on('proxyReq', (proxyReq: any, req: any, _res: any) => {
+      proxy.on('proxyReq', (proxyReq, req) => {
        const fullUrl = `${backendUrl}${req.url}`
         process.stdout.write(`[Proxy Request] 
           Method: ${req.method}
@@ -69,7 +68,7 @@ export default defineConfig(({ mode, command }) => {
         proxyReq.setHeader('Accept', 'application/json')
         proxyReq.setHeader('Content-Type', 'application/json')
       });
-      proxy.on('proxyRes', (proxyRes: any, req: any, res: any) => {
+      proxy.on('proxyRes', (proxyRes, req, res) => {
         res.setHeader('Content-Type', 'application/json')
         process.stdout.write(`[Proxy Response] ${proxyRes.statusCode} ${req.url}\n`)
       });
