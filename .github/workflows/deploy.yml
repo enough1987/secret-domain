@@ -39,28 +39,20 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ec2-user
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true # Stop on errors
+          script_stop: true
           script: |
             set -ex  # Exit on error and print commands
 
-            # Ensure clean environment
-            echo "Cleaning up previous deployment..."
-            sudo systemctl stop docker || true
-            sudo systemctl stop nginx || true
-            sudo rm -rf ~/RTK-Query || true
+            # Remove conflicting curl packages
+            sudo yum remove -y curl curl-minimal || true
 
-            # Install required packages
+            # Clean yum cache
+            sudo yum clean all
+            sudo rm -rf /var/cache/yum
+
+            # Install required packages with --allowerasing flag
             sudo yum update -y
-            sudo yum install -y git docker firewalld curl wget
-
-            # Configure firewall
-            echo "Configuring firewall..."
-            sudo systemctl start firewalld
-            sudo systemctl enable firewalld
-            sudo firewall-cmd --permanent --add-port=80/tcp
-            sudo firewall-cmd --permanent --add-port=3000/tcp
-            sudo firewall-cmd --permanent --add-port=3001/tcp
-            sudo firewall-cmd --reload
+            sudo yum install -y --allowerasing git docker firewalld curl wget
 
             # Install Docker Compose
             echo "Installing Docker Compose..."
