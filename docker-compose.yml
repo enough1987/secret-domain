@@ -15,7 +15,6 @@ services:
       - NGINX_ENTRYPOINT_QUIET_LOGS=0  # Show entrypoint logs
       - NGINX_ERROR_LOG_LEVEL=debug    # Set error log level
     depends_on:
-      - frontend  # Wait for frontend to be ready
       - backend   # Wait for backend to be ready
     networks:
       - dev  # Attach to 'dev' network
@@ -47,33 +46,6 @@ services:
       retries: 3
     volumes:
       - ./logs:/app/logs  # Persist backend logs to host (adjust path as needed)
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped  # Always restart unless stopped manually
-
-  frontend:
-    build:
-      context: ./frontend  # Build context is frontend directory
-      dockerfile: Dockerfile  # Use custom Dockerfile
-    container_name: frontend
-    environment:
-      - NODE_ENV=development
-      - DEBUG=vite:*
-      - LOG_DIR=/app/logs
-    networks:
-      - dev
-    depends_on:
-      - backend  # Wait for backend to be ready
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]  # Health check for frontend
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    volumes:
-      - ./logs:/app/logs  # Persist frontend logs
     logging:
       driver: "json-file"
       options:
