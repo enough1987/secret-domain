@@ -1,73 +1,63 @@
 networks:
   dev:
-    driver: bridge
+    driver: bridge  # (default) Use bridge network for inter-container communication
 
 services:
   nginx:
-    image: nginx:alpine
-    container_name: nginx
+    image: nginx:alpine  # Use official Nginx image
+    container_name: nginx  # Name the container 'nginx'
     ports:
-      - "0.0.0.0:80:80"  # Bind to all interfaces
+      - "0.0.0.0:80:80"  # Expose port 80 on host and map to container
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./logs:/var/log/nginx
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Mount custom Nginx config
+      - ./logs:/var/log/nginx  # Persist Nginx logs to host
     environment:
-      - NGINX_ENTRYPOINT_QUIET_LOGS=0
-      - NGINX_ERROR_LOG_LEVEL=debug
+      - NGINX_ENTRYPOINT_QUIET_LOGS=0  # Show entrypoint logs
+      - NGINX_ERROR_LOG_LEVEL=debug    # Set error log level
     depends_on:
-      - frontend
-      - backend
+      - frontend  # Wait for frontend to be ready
+      - backend   # Wait for backend to be ready
     networks:
-      - dev
+      - dev  # Attach to 'dev' network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]  # Health check for Nginx
       interval: 10s
       timeout: 5s
       retries: 3
     logging:
-      driver: "json-file"
+      driver: "json-file"  # Use JSON file logging
       options:
-        max-size: "10m"
-        max-file: "3"
-    restart: unless-stopped  # Add restart policy
+        max-size: "10m"    # Max log file size
+        max-file: "3"      # Max number of log files
+    restart: unless-stopped  # Always restart unless stopped manually
 
   backend:
-    image: node:current-alpine
+    build:
+      context: ./backend  # Build context is backend directory
+      dockerfile: Dockerfile  # Use custom Dockerfile
     container_name: backend
-    working_dir: /usr/src/app
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
-      - ./logs:/usr/src/app/logs
-      - type: bind
-        source: ./backend/db.json
-        target: /usr/src/app/db.json
-        read_only: false
-    command: >
-      sh -c "npm install && npm run dev"
     environment:
-      - NODE_ENV=development
-      - LOG_DIR=/usr/src/app/logs
+      - NODE_ENV=production
     networks:
       - dev
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/todos"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/todos"]  # Health check for backend
       interval: 10s
       timeout: 5s
       retries: 3
-    tty: true
-    stdin_open: true
+    volumes:
+      - ./logs:/app/logs  # Persist backend logs to host (adjust path as needed)
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    restart: unless-stopped  # Add restart policy
+    restart: unless-stopped  # Always restart unless stopped manually
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ./frontend  # Build context is frontend directory
+      dockerfile: Dockerfile  # Use custom Dockerfile
     container_name: frontend
     environment:
       - NODE_ENV=development
@@ -76,17 +66,17 @@ services:
     networks:
       - dev
     depends_on:
-      - backend
+      - backend  # Wait for backend to be ready
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]  # Health check for frontend
       interval: 10s
       timeout: 5s
       retries: 3
     volumes:
-      - ./logs:/app/logs
+      - ./logs:/app/logs  # Persist frontend logs
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-    restart: unless-stopped  # Add restart policy
+    restart: unless-stopped  # Always restart unless stopped manually
