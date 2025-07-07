@@ -3,7 +3,7 @@ import { type IPhoto, type ITodo } from './models'
 
 export const api = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ baseUrl: `${import.meta.env.VITE_API_URL}` }),
+  baseQuery: fetchBaseQuery({ baseUrl: `${import.meta.env.VITE_API_URL}/api` }),
   tagTypes: ['todos', 'photos'],
   endpoints: (builder) => ({
     getTodos: builder.query<ITodo[], number | void>({
