@@ -38,11 +38,15 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # or your region
+          aws-region: eu-north-1 # or your region
 
       - name: Deploy to S3
         run: |
           aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
+      - name: log s3 bucket  Website endpoint URL
+        run: |
+          echo "S3 Website endpoint URL: http://todo-app2025-frontend.s3-website-eu-north-1.amazonaws.com"
+          aws s3 ls s3://todo-app2025-frontend
 
   deploy:
     runs-on: ubuntu-latest # Use Ubuntu runner for the job
