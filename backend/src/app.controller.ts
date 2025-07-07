@@ -14,6 +14,11 @@ import { Todo, Photo } from './models';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Get('/')
+  root() {
+    return { status: 'ok' };
+  }
+
   @Get('todos')
   getTodos(): Todo[] | { error: string; details: string } {
     return this.appService.getTodos();
