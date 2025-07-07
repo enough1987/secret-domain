@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync ./frontend/dist s3://YOUR_BUCKET_NAME --delete
+          aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
 
   deploy:
     runs-on: ubuntu-latest # Use Ubuntu runner for the job
