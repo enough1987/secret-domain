@@ -19,8 +19,10 @@ jobs:
       - name: Set npm registry to public
         run: npm config set registry https://registry.npmjs.org/
 
-      - name: Clear npm cache
-        run: npm cache clean --force
+      - name: Clear npm cache and remove .npmrc
+        run: |
+          rm -f ~/.npmrc
+          npm cache clean --force
 
       - name: Debug npm config
         run: npm config list
