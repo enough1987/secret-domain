@@ -39,7 +39,6 @@ jobs:
           host: ${{ secrets.EC2_HOST }} # EC2 public DNS or IP
           username: ec2-user # Default EC2 username
           key: ${{ secrets.EC2_SSH_KEY }} # SSH private key
-          script_stop: true # Stop on error
           script: |
             set -ex  # Exit on error and print commands
 
