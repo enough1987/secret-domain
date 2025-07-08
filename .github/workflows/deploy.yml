@@ -139,7 +139,7 @@ jobs:
             cd "$APP_DIR"
             ls -la
 
-            if [ ! -f "backend/docker-compose.yml" ]; then
+            if [ ! -f "docker-compose.yml" ]; then
               echo "Error: docker-compose.yml not found!"
               exit 1
             fi
@@ -177,7 +177,7 @@ jobs:
 
             # Test external access
             echo "Testing external access:"
-            curl -v http://localhost:80
+            curl -v https://localhost:80
 
             # Add Docker login if using private images
             echo "Logging into Docker..."
@@ -188,7 +188,7 @@ jobs:
             MAX_RETRIES=5
             COUNT=0
             while [ $COUNT -lt $MAX_RETRIES ]; do
-              if curl -f http://localhost; then
+              if curl -f https://localhost; then
                 echo "Application is healthy"
                 exit 0
               fi
