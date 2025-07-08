@@ -115,7 +115,7 @@ jobs:
             echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
             # Setup application directory
-            APP_DIR=~/RTK-Query
+            APP_DIR=~/RTK-Query/backend
             echo "Deploying to $APP_DIR"
 
             # Remove existing directory if corrupted
