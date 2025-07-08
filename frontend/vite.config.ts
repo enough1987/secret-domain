@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { ProxyOptions } from 'vite'
+import * as fs from 'fs'
 
 export const ReactCompilerConfig = {
   target: '19',
@@ -14,14 +15,8 @@ export const ReactCompilerConfig = {
 };
 
 // https://vite.dev/config/
-export default defineConfig(({ mode, command }) => {
-  const isProduction = mode === 'production'
-  const isPreview = command === 'serve' && mode === 'production'
-  
-  // Always use Docker service name in production/preview
-  const backendUrl = isProduction && !isPreview
-    ? 'http://backend:3001'    // Docker environment
-    : 'http://localhost:3001'  // Local development
+export default defineConfig(({ mode }) => {
+  const backendUrl = 'http://localhost:3001';
 
   process.stdout.write(`[Vite Config] Mode: ${mode}, backendUrl: ${backendUrl}\n`)
 
@@ -75,6 +70,12 @@ export default defineConfig(({ mode, command }) => {
     }
   }
 
+  // Add HTTPS config for local development
+  const https = {
+    key: fs.readFileSync('./certs/server.key'),
+    cert: fs.readFileSync('./certs/server.cert'),
+  };
+
   return {
     plugins: [
       react({
@@ -87,6 +88,7 @@ export default defineConfig(({ mode, command }) => {
     server: {
       host: '0.0.0.0',
       port: 3000,
+      https, 
       proxy: {
         '/api': proxyConfig
       }
@@ -94,6 +96,7 @@ export default defineConfig(({ mode, command }) => {
     preview: {
       host: '0.0.0.0',
       port: 3000,
+      https,
       proxy: {
         '/api': proxyConfig
       }

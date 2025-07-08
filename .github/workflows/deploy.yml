@@ -47,7 +47,8 @@ jobs:
           aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
       - name: log s3 bucket  Website endpoint URL
         run: |
-          echo "S3 Website endpoint URL: http://todo-app2025-frontend.s3-website.eu-north-1.amazonaws.com"
+          echo "(Disabled for security reasons) S3 Website endpoint URL: http://todo-app2025-frontend.s3-website.eu-north-1.amazonaws.com"
+          echo "( CloudFront URL ) S3 Website endpoint URL: https://d3vkn91yiky8ht.cloudfront.net"
           aws s3 ls s3://todo-app2025-frontend
 
   deploy-backend:
@@ -176,7 +177,7 @@ jobs:
 
             # Test external access
             echo "Testing external access:"
-            curl -v http://localhost:80
+            curl -v https://localhost:80
 
             # Add Docker login if using private images
             echo "Logging into Docker..."
@@ -187,7 +188,7 @@ jobs:
             MAX_RETRIES=5
             COUNT=0
             while [ $COUNT -lt $MAX_RETRIES ]; do
-              if curl -f http://localhost:80; then
+              if curl -f https://localhost:80; then
                 echo "Application is healthy"
                 exit 0
               fi

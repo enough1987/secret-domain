@@ -8,7 +8,9 @@ services:
     container_name: nginx  # Name the container 'nginx'
     ports:
       - "0.0.0.0:80:80"  # Expose port 80 on host and map to container
+      - "0.0.0.0:443:443"  # Expose port 443 on host and map to container
     volumes:
+      - ./certs:/etc/nginx/certs:ro  # Mount certificates for SSL
       - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Mount custom Nginx config
       - ./logs:/var/log/nginx  # Persist Nginx logs to host
     environment:
@@ -19,7 +21,7 @@ services:
     networks:
       - dev  # Attach to 'dev' network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]  # Health check for Nginx
+      test: ["CMD", "wget", "-q", "--spider", "https://localhost:80"]  # Health check for Nginx
       interval: 10s
       timeout: 5s
       retries: 3
@@ -40,12 +42,13 @@ services:
     networks:
       - dev
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/todos"]  # Health check for backend
+      test: ["CMD", "wget", "-q", "--spider", "https://localhost:3001/todos"]  # Health check for backend
       interval: 10s
       timeout: 5s
       retries: 3
     volumes:
       - ./logs:/app/logs  # Persist backend logs to host (adjust path as needed)
+      - ./certs:/app/certs:ro
     logging:
       driver: "json-file"
       options:
