@@ -107,6 +107,12 @@ jobs:
             sudo yum update -y
             sudo yum install -y --allowerasing git docker firewalld curl wget
 
+            echo "==== Freeing disk space ===="
+            docker system prune -af || true
+            docker volume prune -f || true
+            sudo rm -rf /var/lib/docker/tmp/*
+            sudo rm -rf /var/cache/yum
+
             echo "==== Installing Docker Compose ===="
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
