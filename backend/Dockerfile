@@ -7,7 +7,7 @@ COPY package.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build --loglevel verbose
+RUN npm run build
 
 # ----------- Production Stage -----------
 FROM node:22-alpine
