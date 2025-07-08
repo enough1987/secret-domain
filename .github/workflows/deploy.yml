@@ -162,7 +162,7 @@ jobs:
             echo "==== Pulling latest images ===="
             docker-compose pull
             echo "==== Building and starting containers ===="
-            docker-compose up --build
+            docker-compose up --build -d
 
             echo "==== Deployment verification: docker-compose ps ===="
             docker-compose ps
@@ -171,7 +171,7 @@ jobs:
             echo "==== Deployment verification: docker network ls ===="
             docker network ls
             echo "==== Deployment verification: docker-compose logs ===="
-            docker-compose logs
+            docker-compose logs --tail=50
 
             echo "==== Testing external access (curl https://localhost:80) ===="
             curl -v https://localhost:80
