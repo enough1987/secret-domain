@@ -21,7 +21,7 @@ services:
     networks:
       - dev  # Attach to 'dev' network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "https://localhost:80"]  # Health check for Nginx
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]  # Health check for Nginx
       interval: 10s
       timeout: 5s
       retries: 3
@@ -42,7 +42,7 @@ services:
     networks:
       - dev
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "https://localhost:3001/todos"]  # Health check for backend
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/todos"]  # Health check for backend
       interval: 10s
       timeout: 5s
       retries: 3

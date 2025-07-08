@@ -7,9 +7,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://d3vkn91yiky8ht.cloudfront.net',
-      // 'https://todo-app2025-frontend.s3-website.eu-north-1.amazonaws.com', 
-      'https://localhost:3000',
-      'https://localhost'
+      'http://localhost:3000',
+      'http://localhost'
     ],
     credentials: true,
   });

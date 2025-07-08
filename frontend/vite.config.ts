@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { ProxyOptions } from 'vite'
-import * as fs from 'fs'
 
 export const ReactCompilerConfig = {
   target: '19',
@@ -70,12 +69,6 @@ export default defineConfig(({ mode }) => {
     }
   }
 
-  // Add HTTPS config for local development
-  const https = {
-    key: fs.readFileSync('./certs/server.key'),
-    cert: fs.readFileSync('./certs/server.cert'),
-  };
-
   return {
     plugins: [
       react({
@@ -88,7 +81,6 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3000,
-      https, 
       proxy: {
         '/api': proxyConfig
       }
@@ -96,7 +88,6 @@ export default defineConfig(({ mode }) => {
     preview: {
       host: '0.0.0.0',
       port: 3000,
-      https,
       proxy: {
         '/api': proxyConfig
       }
