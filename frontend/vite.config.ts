@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import type { ProxyOptions } from 'vite'
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export const ReactCompilerConfig = {
   target: '19',
@@ -76,11 +77,13 @@ export default defineConfig(({ mode }) => {
           plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
         },
       }), 
-      tailwindcss()
+      tailwindcss(),
+      basicSsl(),
     ],
     server: {
       host: '0.0.0.0',
       port: 3000,
+      open: true,
       proxy: {
         '/api': proxyConfig
       }
