@@ -115,7 +115,7 @@ jobs:
             echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
             # Setup application directory
-            APP_DIR=~/RTK-Query/backend
+            APP_DIR=~/RTK-Query
             echo "Deploying to $APP_DIR"
 
             # Remove existing directory if corrupted
@@ -136,7 +136,9 @@ jobs:
             fi
 
             # Verify repository and files
-            cd "$APP_DIR"
+
+            BACKEND_DIR=~/RTK-Query/backend
+            cd "$BACKEND_DIR"
             ls -la
 
             if [ ! -f "docker-compose.yml" ]; then
@@ -162,7 +164,7 @@ jobs:
             curl -v localhost:80 || true
 
             # Deploy with enhanced logging
-            cd "$APP_DIR"
+            cd "$BACKEND_DIR"
             echo "Starting deployment from $(pwd)"
             docker-compose config  # Validate docker-compose config
             docker-compose pull    # Pull latest images
@@ -175,7 +177,7 @@ jobs:
             docker network ls
             docker-compose logs
 
-            # Test external access
+            # Test extcd "$APP_DIR"ernal access
             echo "Testing external access:"
             curl -v https://localhost:80
 
