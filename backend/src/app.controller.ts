@@ -16,7 +16,7 @@ export class AppController {
 
   @Get('/')
   root() {
-    return { status: 'ok' };
+    return { status: 'ok', vertion: process.env.npm_package_version || 'unknown' };
   }
 
   @Get('todos')
