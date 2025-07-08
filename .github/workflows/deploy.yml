@@ -174,8 +174,8 @@ jobs:
             echo "==== Deployment verification: docker-compose logs ===="
             docker-compose logs --tail=50
 
-            echo "==== Testing external access (curl https://localhost:80) ===="
-            curl -v https://localhost:80
+            echo "==== Testing external access (curl http://localhost:80) ===="
+            curl -v http://localhost:80
 
             echo "==== Logging into Docker (if using private images) ===="
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || true
