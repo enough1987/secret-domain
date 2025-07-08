@@ -139,8 +139,8 @@ jobs:
             cd "$APP_DIR"
             ls -la
 
-            if [ ! -f "$APP_DIR/docker-compose.yml" ]; then
-              echo "Error: $APP_DIR/docker-compose.yml not found!"
+            if [ ! -f "docker-compose.yml" ]; then
+              echo "Error: docker-compose.yml not found!"
               exit 1
             fi
 
@@ -148,7 +148,7 @@ jobs:
             echo "Cleaning up existing services..."
             sudo systemctl stop nginx || true  # Stop system nginx if running
             sudo lsof -ti:80 | xargs -r sudo kill -9 || true  # Force kill anything on port 80
-            $APP_DIR/docker-compose down --remove-orphans || true  # Stop existing containers
+            docker-compose down --remove-orphans || true  # Stop existing containers
 
             # Verify port availability
             if sudo lsof -i :80; then
@@ -164,16 +164,16 @@ jobs:
             # Deploy with enhanced logging
             cd "$APP_DIR"
             echo "Starting deployment from $(pwd)"
-            $APP_DIR/docker-compose config  # Validate $APP_DIR/docker-compose config
-            $APP_DIR/docker-compose pull    # Pull latest images
-            $APP_DIR/docker-compose up --build -d  # Build and start containers
+            docker-compose config  # Validate docker-compose config
+            docker-compose pull    # Pull latest images
+            docker-compose up --build -d  # Build and start containers
 
             # Enhanced verification
             echo "Deployment verification:"
-            $APP_DIR/docker-compose ps
-            $APP_DIR/docker ps -a
-            $APP_DIR/docker network ls
-            $APP_DIR/docker-compose logs
+            docker-compose ps
+            docker ps -a
+            docker network ls
+            docker-compose logs
 
             # Test external access
             echo "Testing external access:"
@@ -181,7 +181,7 @@ jobs:
 
             # Add Docker login if using private images
             echo "Logging into Docker..."
-            echo "${{ secrets.DOCKER_PASSWORD }}" | $APP_DIR/docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || true
+            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || true
 
             # Add health check
             echo "Checking application health..."
