@@ -7,7 +7,7 @@ COPY package.json ./
 RUN npm install
 
 COPY . .
-RUN npm run build || (cat ./npm-debug.log || true; exit 1)
+RUN npm run build --loglevel verbose
 
 # ----------- Production Stage -----------
 FROM node:current-alpine
