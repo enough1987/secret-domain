@@ -52,7 +52,7 @@ jobs:
           aws s3 ls s3://todo-app2025-frontend
 
       - name: Invalidate CloudFront cache
-        uses: aws-actions/aws-cloudfront-invalidate-cache@v1
+        uses: aws-actions/aws-cloudfront-invalidate@v1
         with:
           distribution-id: E1OEKXPOVOU5KK
           paths: "/*"
@@ -206,7 +206,7 @@ jobs:
             exit 1
 
       - name: Invalidate CloudFront cache
-        uses: aws-actions/aws-cloudfront-invalidate-cache@v1
+        uses: aws-actions/aws-cloudfront-invalidate@v1
         with:
           distribution-id: E1OEKXPOVOU5KK
           paths: "/*"
