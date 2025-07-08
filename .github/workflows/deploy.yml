@@ -185,7 +185,7 @@ jobs:
             COUNT=0
             while [ $COUNT -lt $MAX_RETRIES ]; do
               echo "==== Health check attempt $((COUNT+1)) of $MAX_RETRIES ===="
-              if curl -f https://localhost; then
+              if curl -kf https://localhost; then
                 echo "==== Application is healthy ===="
                 exit 0
               fi
