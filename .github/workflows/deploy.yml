@@ -139,7 +139,7 @@ jobs:
             cd "$APP_DIR"
             ls -la
 
-            if [ ! -f "docker-compose.yml" ]; then
+            if [ ! -f "backend/docker-compose.yml" ]; then
               echo "Error: docker-compose.yml not found!"
               exit 1
             fi
