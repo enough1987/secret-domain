@@ -52,14 +52,12 @@ jobs:
           aws s3 ls s3://todo-app2025-frontend
 
       - name: Invalidate CloudFront cache
-        uses: aws-actions/aws-cloudfront-invalidate@v1
-        with:
-          distribution-id: E1OEKXPOVOU5KK
-          paths: "/*"
+        run: |
+          aws cloudfront create-invalidation --distribution-id E1OEKXPOVOU5KK --paths "/*"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-north-1 # or your region
+          AWS_REGION: eu-north-1
 
   deploy-backend:
     runs-on: ubuntu-latest # Use Ubuntu runner for the job
@@ -206,11 +204,9 @@ jobs:
             exit 1
 
       - name: Invalidate CloudFront cache
-        uses: aws-actions/aws-cloudfront-invalidate@v1
-        with:
-          distribution-id: E1OEKXPOVOU5KK
-          paths: "/*"
+        run: |
+          aws cloudfront create-invalidation --distribution-id E1OEKXPOVOU5KK --paths "/*"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-north-1 # or your region
+          AWS_REGION: eu-north-1
