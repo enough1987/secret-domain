@@ -121,6 +121,10 @@ jobs:
               rm -rf "$APP_DIR"
             fi
 
+            echo "==== Fixing permissions for RTK-Query directory ===="
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/RTK-Query
+            sudo chmod -R u+w /home/ec2-user/RTK-Query
+
             if [ ! -d "$APP_DIR" ]; then
               echo "==== Cloning fresh repository... ===="
               git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git "$APP_DIR"
