@@ -1,5 +1,5 @@
 # ----------- Build Stage -----------
-FROM node:current-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build --loglevel verbose
 
 # ----------- Production Stage -----------
-FROM node:current-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
@@ -24,3 +24,4 @@ COPY --from=build /app/nest-cli.json ./nest-cli.json
 EXPOSE 3001
 
 CMD ["node", "dist/main.js"]
+
