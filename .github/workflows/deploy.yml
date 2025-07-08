@@ -88,114 +88,108 @@ jobs:
           script: |
             set -ex  # Exit on error and print commands
 
-            # Remove conflicting curl packages
+            echo "==== Removing conflicting curl packages ===="
             sudo yum remove -y curl curl-minimal || true
 
-            # Clean yum cache
+            echo "==== Cleaning yum cache ===="
             sudo yum clean all
             sudo rm -rf /var/cache/yum
 
-            # Install required packages with --allowerasing flag
+            echo "==== Installing required packages ===="
             sudo yum update -y
             sudo yum install -y --allowerasing git docker firewalld curl wget
 
-            # Install Docker Compose
-            echo "Installing Docker Compose..."
+            echo "==== Installing Docker Compose ===="
             DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
             sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
 
-            # Start and enable Docker
+            echo "==== Starting and enabling Docker ===="
             sudo systemctl start docker
             sudo systemctl enable docker
             sudo usermod -aG docker $USER
 
-            # Configure Git credentials for private repo access
+            echo "==== Configuring Git credentials for private repo access ===="
             git config --global credential.helper store
             echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
 
-            # Setup application directory
             APP_DIR=~/RTK-Query
-            echo "Deploying to $APP_DIR"
+            echo "==== Deploying to $APP_DIR ===="
 
-            # Remove existing directory if corrupted
             if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
-              echo "Removing invalid repository..."
+              echo "==== Removing invalid repository... ===="
               rm -rf "$APP_DIR"
             fi
 
-            # Clone or update repository
             if [ ! -d "$APP_DIR" ]; then
-              echo "Cloning fresh repository..."
+              echo "==== Cloning fresh repository... ===="
               git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git "$APP_DIR"
             else
-              echo "Updating existing repository..."
+              echo "==== Updating existing repository... ===="
               cd "$APP_DIR"
               git fetch origin
               git reset --hard origin/main
             fi
 
-            # Verify repository and files
-
             BACKEND_DIR=~/RTK-Query/backend
+            echo "==== Switching to backend directory: $BACKEND_DIR ===="
             cd "$BACKEND_DIR"
+            echo "==== Listing backend directory contents ===="
             ls -la
 
             if [ ! -f "docker-compose.yml" ]; then
-              echo "Error: docker-compose.yml not found!"
+              echo "==== Error: docker-compose.yml not found! ===="
               exit 1
             fi
 
-            # Stop any running services and clear ports
-            echo "Cleaning up existing services..."
-            sudo systemctl stop nginx || true  # Stop system nginx if running
-            sudo lsof -ti:80 | xargs -r sudo kill -9 || true  # Force kill anything on port 80
-            docker-compose down --remove-orphans || true  # Stop existing containers
+            echo "==== Cleaning up existing services... ===="
+            sudo systemctl stop nginx || true
+            sudo lsof -ti:80 | xargs -r sudo kill -9 || true
+            docker-compose down --remove-orphans || true
 
-            # Verify port availability
+            echo "==== Verifying port 80 availability ===="
             if sudo lsof -i :80; then
-              echo "Error: Port 80 is still in use"
+              echo "==== Error: Port 80 is still in use ===="
               exit 1
             fi
 
-            # Verify network configuration
-            echo "Checking network configuration..."
+            echo "==== Checking network configuration ===="
             sudo netstat -tulpn
             curl -v localhost:80 || true
 
-            # Deploy with enhanced logging
-            cd "$BACKEND_DIR"
-            echo "Starting deployment from $(pwd)"
-            docker-compose config  # Validate docker-compose config
-            docker-compose pull    # Pull latest images
-            docker-compose up --build -d  # Build and start containers
+            echo "==== Starting deployment from $(pwd) ===="
+            docker-compose config
+            echo "==== Pulling latest images ===="
+            docker-compose pull
+            echo "==== Building and starting containers ===="
+            docker-compose up --build -d
 
-            # Enhanced verification
-            echo "Deployment verification:"
+            echo "==== Deployment verification: docker-compose ps ===="
             docker-compose ps
+            echo "==== Deployment verification: docker ps -a ===="
             docker ps -a
+            echo "==== Deployment verification: docker network ls ===="
             docker network ls
+            echo "==== Deployment verification: docker-compose logs ===="
             docker-compose logs
 
-            # Test extcd "$APP_DIR"ernal access
-            echo "Testing external access:"
+            echo "==== Testing external access (curl https://localhost:80) ===="
             curl -v https://localhost:80
 
-            # Add Docker login if using private images
-            echo "Logging into Docker..."
+            echo "==== Logging into Docker (if using private images) ===="
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || true
 
-            # Add health check
-            echo "Checking application health..."
+            echo "==== Starting health check loop ===="
             MAX_RETRIES=5
             COUNT=0
             while [ $COUNT -lt $MAX_RETRIES ]; do
+              echo "==== Health check attempt $((COUNT+1)) of $MAX_RETRIES ===="
               if curl -f https://localhost; then
-                echo "Application is healthy"
+                echo "==== Application is healthy ===="
                 exit 0
               fi
               COUNT=$((COUNT+1))
               sleep 10
             done
-            echo "Health check failed after $MAX_RETRIES attempts"
+            echo "==== Health check failed after $MAX_RETRIES attempts ===="
             exit 1
