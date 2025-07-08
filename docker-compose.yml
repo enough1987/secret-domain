@@ -34,7 +34,7 @@ services:
 
   backend:
     build:
-      context: ./  # Build context is backend directory
+      context: ./backend  # Build context is backend directory
       dockerfile: Dockerfile  # Use custom Dockerfile
     container_name: backend
     environment:

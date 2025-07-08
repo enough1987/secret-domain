@@ -131,9 +131,6 @@ jobs:
               git reset --hard origin/main
             fi
 
-            BACKEND_DIR=~/RTK-Query/backend
-            echo "==== Switching to backend directory: $BACKEND_DIR ===="
-            cd "$BACKEND_DIR"
             echo "==== Listing backend directory contents ===="
             ls -la
 
