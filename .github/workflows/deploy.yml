@@ -162,7 +162,7 @@ jobs:
             echo "==== Pulling latest images ===="
             docker-compose pull
             echo "==== Building and starting containers ===="
-            docker-compose up --build -d
+            docker-compose up --build
 
             echo "==== Deployment verification: docker-compose ps ===="
             docker-compose ps
