@@ -6,7 +6,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      'https://d3vkn91yiky8ht.cloudfront.net',
+      'https://duv4josean1c1.cloudfront.net',
       'https://localhost:3000',
       'https://localhost',
     ],
