@@ -49,6 +49,7 @@ jobs:
         run: |
           echo "(Disabled for security reasons) S3 Website endpoint URL: http://todo-app2025-frontend.s3-website.eu-north-1.amazonaws.com"
           echo "( CloudFront URL ) S3 Website endpoint URL: https://duv4josean1c1.cloudfront.net"
+          echo "( CloudFront URL with domain name ) S3 Website endpoint URL: https://secret-domain.net/"
           aws s3 ls s3://todo-app2025-frontend
 
       - name: Invalidate CloudFront cache

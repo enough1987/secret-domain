@@ -1,6 +1,6 @@
 # RTK-Query Fullstack App
 
-This project is a fullstack application with a React frontend (built with Vite), a Node.js/NestJS backend, and AWS infrastructure using S3, CloudFront, and EC2. Deployment is automated via GitHub Actions.
+This project is a fullstack application with a React frontend (built with Vite), a Node.js/NestJS backend, and AWS infrastructure using S3, EC2, CloudFront, Route 53. Deployment is automated via GitHub Actions.
 
 ---
 
@@ -22,21 +22,27 @@ This project is a fullstack application with a React frontend (built with Vite),
   - `*` → S3 origin (serves frontend)
   - `/api/*` → EC2 origin (serves backend API)
 - **Security:** Uses OAC to securely fetch files from S3, even with S3 "Block all public access" enabled.
+- **Custom Domain:** Uses [https://secret-domain.net](https://secret-domain.net) via Route 53 and ACM certificate.
 
 ### 3. EC2 (Elastic Compute Cloud)
 
 - **Purpose:** Runs your backend (Node.js/NestJS) and Nginx as a reverse proxy.
 - **Deployment:** Automated via GitHub Actions using SSH and Docker Compose.
-- **Nginx:** Listens on port 443 (HTTPS), proxies `/api/` requests to the backend container.
+- **Nginx:** Listens on port 80 (HTTP), proxies `/api/` requests to the backend container.
 - **Backend:** Dockerized Node.js/NestJS app, listens on port 3001.
 
-### 4. GitHub Actions (CI/CD)
+### 4. Route 53 (DNS)
+
+- **Purpose:** Manages DNS for your custom domain.
+- **Setup:** An A/ALIAS record points `secret-domain.net` to your CloudFront distribution.
+
+### 5. GitHub Actions (CI/CD)
 
 - **Purpose:** Automates deployment for both frontend and backend.
 - **Frontend:** Builds and uploads to S3, then invalidates CloudFront cache.
 - **Backend:** SSHs into EC2, pulls latest code, and restarts Docker Compose services.
 
-### 5. Security
+### 6. Security
 
 - **S3:** "Block all public access" is ON. Only CloudFront (via OAC) can read objects.
 - **CloudFront:** Handles HTTPS for both frontend and API.
@@ -46,9 +52,9 @@ This project is a fullstack application with a React frontend (built with Vite),
 
 ## Request Flow
 
-1. **User visits** `https://duv4josean1c1.cloudfront.net`
+1. **User visits** [https://secret-domain.net](https://secret-domain.net)
    - CloudFront serves static files from S3.
-2. **User/API calls** `https://duv4josean1c1.cloudfront.net/api/todos`
+2. **User/API calls** [https://secret-domain.net/api/todos](https://secret-domain.net/api/todos)
    - CloudFront routes `/api/*` to EC2’s Nginx, which proxies to the backend container.
 3. **All other paths** (e.g., `/`, `/about`, `/static/*`)
    - CloudFront serves from S3 (with SPA routing via CloudFront Function if needed).
@@ -61,7 +67,7 @@ This project is a fullstack application with a React frontend (built with Vite),
 [User]
    |
    v
-[CloudFront Distribution]
+[CloudFront Distribution] (secret-domain.net)
    |                \
    v                 v
 [S3 Bucket]      [EC2 Instance]
@@ -113,7 +119,7 @@ This project is a fullstack application with a React frontend (built with Vite),
 ## Environment Variables
 
 - **Frontend:**  
-  Set `VITE_API_URL` in `.env.production` to your CloudFront domain (e.g., `https://duv4josean1c1.cloudfront.net/api`).
+  Set `VITE_API_URL` in `.env.production` to your CloudFront domain (e.g., `https://secret-domain.net/api`).
 
 - **Backend:**  
   Configure as needed in your Docker Compose or environment.
