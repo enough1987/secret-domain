@@ -36,6 +36,10 @@ services:
       context: ./backend  # Build context is backend directory
       dockerfile: Dockerfile  # Use custom Dockerfile
     container_name: backend
+    ports:
+      - "3001:3001"
+    env_file:
+      - ./backend/.env
     environment:
       - NODE_ENV=production
     networks:

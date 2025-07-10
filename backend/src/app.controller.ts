@@ -7,47 +7,52 @@ import {
   Body,
   Param,
 } from '@nestjs/common';
-import { AppService } from './app.service';
-import { Todo, Photo } from './models';
+import { AppService } from './services/app.service';
+import { Todo, Photo } from '../generated/prisma';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/')
-  root() {
-    return { status: 'ok', vertion: process.env.npm_package_version || 'unknown' };
+  async root() {
+    const isConnected = await this.appService.isDbConnected();
+    return {
+      status: isConnected ? 'ok' : 'error',
+      db: isConnected,
+      version: process.env.npm_package_version || 'unknown',
+    };
   }
 
   @Get('todos')
-  getTodos(): Todo[] | { error: string; details: string } {
+  async getTodos(): Promise<Todo[] | { error: string; details: string }> {
     return this.appService.getTodos();
   }
 
   @Post('todos')
-  addTodo(
+  async addTodo(
     @Body() todo: Omit<Todo, 'id' | 'created'>,
-  ): Todo | { error: string; details: string } {
+  ): Promise<Todo | { error: string; details: string }> {
     return this.appService.addTodo(todo);
   }
 
   @Patch('todos/:id')
-  updateTodo(
+  async updateTodo(
     @Param('id') id: string,
     @Body() todo: Partial<Todo>,
-  ): Todo | { error: string; details: string } {
+  ): Promise<Todo | { error: string; details: string }> {
     return this.appService.updateTodo({ ...todo, id });
   }
 
   @Delete('todos/:id')
-  deleteTodo(
+  async deleteTodo(
     @Param('id') id: string,
-  ): { id: string } | { error: string; details: string } {
+  ): Promise<{ id: string } | { error: string; details: string }> {
     return this.appService.deleteTodo(id);
   }
 
   @Get('photos')
-  getPhotos(): Photo[] | { error: string; details: string } {
+  async getPhotos(): Promise<Photo[] | { error: string; details: string }> {
     return this.appService.getPhotos();
   }
 }

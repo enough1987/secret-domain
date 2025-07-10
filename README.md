@@ -70,12 +70,13 @@ This project is a fullstack application with a React frontend (built with Vite),
 [CloudFront Distribution] (secret-domain.net)
    |                \
    v                 v
-[S3 Bucket]      [EC2 Instance]
- (Frontend)        (Nginx -> Backend)
+[S3 Bucket]      [EC2 Instance]                          [AWS RDS]
+(Frontend)      (Nginx -> Backend) ->   Prisma ORM ->   (PostgreSQL)
 ```
 
 - **Default behavior (`*`):** S3 Bucket (frontend)
 - **API behavior (`/api/*`):** EC2 (Nginx → Backend)
+- **Backend:** Connects to AWS RDS PostgreSQL using Prisma ORM for all database operations.
 
 ---
 
@@ -158,6 +159,67 @@ This project is a fullstack application with a React frontend (built with Vite),
 ## License
 
 MIT
+
+---
+
+## API Documentation (Swagger)
+
+This project uses [Swagger](https://swagger.io/) for interactive API documentation, powered by [@nestjs/swagger](https://docs.nestjs.com/openapi/introduction).
+
+- **Access the Swagger UI locally:**  
+  [http://localhost:3001/api](http://localhost:3001/api)
+
+- **Features:**
+  - View and test all available API endpoints
+  - See request/response schemas and error messages
+  - Auto-generated from your NestJS controllers and DTOs
+
+### How to Enable/Customize
+
+Swagger is set up in [`src/main.ts`](backend/src/main.ts) and enabled by default for local development.  
+You can customize the title, description, and version in the `DocumentBuilder`
+
+---
+
+## Database: Prisma & AWS RDS PostgreSQL
+
+This project uses [Prisma](https://www.prisma.io/) as an ORM for type-safe database access and migrations, connected to a managed PostgreSQL instance on AWS RDS.
+
+- **Prisma:**
+
+  - Database schema is defined in [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma).
+  - Prisma Client is generated and used in the NestJS backend for all database operations.
+  - Migrations are managed via Prisma CLI (`npx prisma migrate dev` for local, `npx prisma migrate deploy` for production).
+
+- **AWS RDS PostgreSQL:**
+
+  - The backend connects to a PostgreSQL database hosted on AWS RDS.
+  - Connection details are provided via the `DATABASE_URL` environment variable, which is securely managed using GitHub Actions secrets and injected during deployment.
+  - Example connection string:
+    ```
+    DATABASE_URL="postgresql://<username>:<password>@<rds-endpoint>:5432/<database>"
+    ```
+
+- **Deployment Notes:**
+
+  - The `.env` file containing the database connection string is **not committed** to the repository. It is stored as a GitHub secret and written to the backend during deployment.
+  - Prisma Client is generated during the Docker build process to ensure compatibility with the deployed schema.
+
+- **Useful Commands:**
+  - Generate Prisma Client:
+    ```bash
+    npx prisma generate
+    ```
+  - Run migrations locally:
+    ```bash
+    npx prisma migrate dev
+    ```
+  - Apply migrations in production:
+    ```bash
+    npx prisma migrate deploy
+    ```
+
+**See [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma) for models and [`backend/.env`](backend/.env) for environment variable examples.**
 
 ---
 
