@@ -171,6 +171,9 @@ jobs:
             sudo netstat -tulpn
             curl -v localhost:80 || true
 
+            echo "==== Setting up environment variables ===="
+            echo "${{ secrets.BACKEND_ENV }}" > backend/.env
+
             echo "==== Starting deployment from $(pwd) ===="
             docker-compose config
             echo "==== Pulling latest images ===="
@@ -207,9 +210,6 @@ jobs:
             done
             echo "==== Health check failed after $MAX_RETRIES attempts ===="
             exit 1
-
-      - name: Write backend .env file from secret
-        run: echo "${{ secrets.BACKEND_ENV }}" > ./backend/.env
 
       - name: Build and run containers
         run: docker-compose up --build -d
