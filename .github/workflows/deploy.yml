@@ -158,6 +158,7 @@ jobs:
 
             echo "==== Cleaning up existing services... ===="
             sudo systemctl stop nginx || true
+            sudo systemctl disable nginx || true
             sudo lsof -ti:80 | xargs -r sudo kill -9 || true
             docker-compose down --remove-orphans || true
 
@@ -212,7 +213,7 @@ jobs:
             exit 1
 
       - name: Build and run containers
-        run: docker-compose up --build -d
+        run: docker-compose up --build
 
       - name: Invalidate CloudFront cache
         run: |
