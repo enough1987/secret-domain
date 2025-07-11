@@ -92,6 +92,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }} # EC2 public DNS or IP
           username: ec2-user # Default EC2 username
           key: ${{ secrets.EC2_SSH_KEY }} # SSH private key
+          timeout: 30m # <-- Add this line for a 30-minute timeout
           script: |
             set -exuo pipefail  # Exit on error and print commands
             trap 'echo "==== ERROR: Showing last 100 lines of backend logs ===="; docker-compose logs --tail=100 backend || true; echo "==== ERROR: Showing docker ps ===="; docker ps -a; exit 1' ERR
@@ -180,7 +181,12 @@ jobs:
             echo "==== Pulling latest images ===="
             docker-compose pull
             echo "==== Building and starting containers ===="
-            docker-compose up --build
+            if ! docker-compose up --build; then
+              echo "==== ERROR: docker-compose up failed ===="
+              docker-compose logs --tail=100
+              docker-compose ps
+              exit 1
+            fi
 
             echo "==== Deployment verification: docker-compose ps ===="
             docker-compose ps

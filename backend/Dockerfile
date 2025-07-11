@@ -22,6 +22,8 @@ RUN npx prisma generate
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/nest-cli.json ./nest-cli.json
 
+ENV NODE_OPTIONS=--max-old-space-size=512
+
 EXPOSE 3001
 
 CMD ["node", "dist/main.js"]
