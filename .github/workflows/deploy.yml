@@ -180,7 +180,7 @@ jobs:
             echo "==== Pulling latest images ===="
             docker-compose pull
             echo "==== Building and starting containers ===="
-            docker-compose up --build -d
+            docker-compose up --build
 
             echo "==== Deployment verification: docker-compose ps ===="
             docker-compose ps
@@ -211,9 +211,6 @@ jobs:
             done
             echo "==== Health check failed after $MAX_RETRIES attempts ===="
             exit 1
-
-      - name: Build and run containers
-        run: docker-compose up --build
 
       - name: Invalidate CloudFront cache
         run: |
