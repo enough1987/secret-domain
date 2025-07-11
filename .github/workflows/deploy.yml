@@ -93,8 +93,8 @@ jobs:
           username: ec2-user # Default EC2 username
           key: ${{ secrets.EC2_SSH_KEY }} # SSH private key
           script: |
-            set -ex  # Exit on error and print commands
-
+            set -exuo pipefail  # Exit on error and print commands
+            trap 'echo "==== ERROR: Showing last 100 lines of backend logs ===="; docker-compose logs --tail=100 backend || true; echo "==== ERROR: Showing docker ps ===="; docker ps -a; exit 1' ERR
             echo "==== Removing conflicting curl packages ===="
             sudo yum remove -y curl curl-minimal || true
 
