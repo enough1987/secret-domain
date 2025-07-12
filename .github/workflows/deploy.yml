@@ -91,7 +91,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest ./backend
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest ./
 
       - name: Tag Docker image
         run: |
@@ -108,7 +108,7 @@ jobs:
 
       - name: Copy docker-compose.yml and nginx.conf to EC2
         run: |
-          scp -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no backend/docker-compose.yml backend/nginx.conf ec2-user@${{ secrets.EC2_HOST }}:~/
+          scp -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no ./docker-compose.yml ./nginx.conf ec2-user@${{ secrets.EC2_HOST }}:~/
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
 
@@ -131,7 +131,7 @@ jobs:
             cd ~/
 
             # Set up environment variables
-            echo "${{ secrets.BACKEND_ENV }}" > backend/.env
+            echo "${{ secrets.BACKEND_ENV }}" > .env
 
             # Clean up unused Docker resources
             docker system prune -af
