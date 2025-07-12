@@ -83,7 +83,7 @@ jobs:
       - name: Delete all images from ECR
         run: |
           aws ecr list-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageIds[*]' --output json > delete.json
-          if [ -s delete.json ]; then
+          if [ "$(jq length < delete.json)" -gt 0 ]; then
             aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids file://delete.json
           else
             echo "No images to delete."
