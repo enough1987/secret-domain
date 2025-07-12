@@ -64,21 +64,59 @@ This project is a fullstack application with a React frontend (built with Vite),
 ## Architecture Diagram
 
 ```
-[User]
-   |
-   v
-[CloudFront Distribution] (secret-domain.net)
-   |                \
-   v                 v
-[S3 Bucket]      [EC2 Instance]                          [AWS RDS]
-(Frontend)      (Nginx -> Backend) ->   Prisma ORM ->   (PostgreSQL)
++-------------------+        +-------------------+        +-----------------------+
+|                   |        |                   |        |                       |
+|      Browser      +------->+    CloudFront     +------->+          S3              |
+|   (User Client)   | HTTPS  | (CDN & Routing)   |  /*    | (Frontend SPA Static) |
+|                   |        |                   |        |                       |
++-------------------+        +-------------------+        +-----------------------+
+                                    |
+                                    | /api/*
+                                    v
+                            +-------------------+
+                            |                   |
+                            |       EC2         |
+                            |   (Nginx +        |
+                            |   Backend API)    |
+                            +-------------------+
+                                    |
+                                    | Prisma ORM
+                                    v
+                            +-------------------+
+                            |                   |
+                            |      RDS          |
+                            |  (PostgreSQL)     |
+                            +-------------------+
+
++-------------------+        +-------------------+
+|                   |        |                   |
+|  GitHub Actions   +------->+      ECR          |
+|   (CI/CD)         | Push   | (Docker Images)   |
++-------------------+        +-------------------+
+                                    ^
+                                    |
+                                    | docker-compose pull
+                                    |
+                            +-------------------+
+                            |                   |
+                            |       EC2         |
+                            |   (Backend)       |
+                            +-------------------+
 ```
 
-- **Default behavior (`*`):** S3 Bucket (frontend)
-- **API behavior (`/api/*`):** EC2 (Nginx → Backend)
-- **Backend:** Connects to AWS RDS PostgreSQL using Prisma ORM for all database operations.
+**Legend:**
+
+- **Browser:** End user accessing your app.
+- **CloudFront:** CDN and HTTPS entry point.
+- **S3:** Hosts frontend static files.
+- **EC2:** Runs Nginx (reverse proxy) and backend (NestJS).
+- **RDS:** Managed PostgreSQL database.
+- **ECR:** Stores backend Docker images.
+- **GitHub Actions:** CI/CD pipeline for building and deploying.
 
 ---
+
+_For more details, see the workflow in `.github/workflows/deploy.yml`._
 
 ## Local Development
 
@@ -97,11 +135,18 @@ This project is a fullstack application with a React frontend (built with Vite),
    cd RTK-Query
    ```
 
-2. **Start backend and Nginx:**
+2. **Start backend and Nginx (with local build):**
+
+   > **Note:**  
+   > The project uses a `docker-compose.override.yml` file.  
+   > This allows you to build the backend image locally for development,  
+   > while production/EC2 pulls the prebuilt image from Amazon ECR.
 
    ```bash
    docker-compose up --build
    ```
+
+   - This will build the backend image from your local Dockerfile and start all services.
 
 3. **Start frontend (in another terminal):**
 
@@ -112,8 +157,54 @@ This project is a fullstack application with a React frontend (built with Vite),
    ```
 
 4. **Access the app:**
-   - Frontend: [http://localhost:5173](http://localhost:5173) (or as shown in your terminal)
+   - Frontend: [http://localhost:5173](http://localhost:3000)
    - API: [http://localhost:3001/api/todos](http://localhost:3001/api/todos)
+
+---
+
+### Deploying to Production (EC2 + ECR)
+
+- The backend Docker image is built and pushed to Amazon ECR by GitHub Actions.
+- On EC2, the deployment script **pulls the image from ECR** and starts the containers.
+
+**Manual steps on EC2 (if needed):**
+
+```bash
+cd ~/RTK-Query
+docker-compose pull
+docker-compose up -d
+```
+
+- This will pull the latest backend image from ECR and start all services (no local build on EC2).
+
+---
+
+### How Docker Compose Works in This Project
+
+- **Local development:**
+  - Uses `docker-compose.override.yml` to build the backend image from your local source.
+  - Run with:
+    ```bash
+    docker-compose up --build
+    ```
+- **Production/EC2:**
+  - Uses only `docker-compose.yml` (no override).
+  - Pulls the prebuilt backend image from ECR.
+  - Run with:
+    ```bash
+    docker-compose pull
+    docker-compose up -d
+    ```
+
+---
+
+**Tip:**  
+If you want to test the production image locally, you can log in to ECR and pull the image:
+
+```bash
+aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-ecr-registry>
+docker pull <your-ecr-registry>/<your-repo>:latest
+```
 
 ---
 
