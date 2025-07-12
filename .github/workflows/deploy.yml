@@ -91,7 +91,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest ./
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest ./backend
 
       - name: Tag Docker image
         run: |
