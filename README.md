@@ -162,8 +162,9 @@ _For more details, see the workflow in `.github/workflows/deploy.yml`._
    ```
 
 4. **Access the app:**
-   - Frontend: [http://localhost:5173](http://localhost:3000)
-   - API: [http://localhost:3001/api/todos](http://localhost:3001/api/todos)
+   - Frontend: [https://secret-domain.net/](https://secret-domain.net)
+   - API: [https://secret-domain.net/api/todos](https://secret-domain.net/api/todos)
+   - Swagger [https://secret-domain.net/api/swagger](https://secret-domain.net/api/swagger)
 
 ---
 
@@ -171,7 +172,6 @@ _For more details, see the workflow in `.github/workflows/deploy.yml`._
 
 - The backend Docker image is built and pushed to Amazon ECR by GitHub Actions.
 - On EC2, the deployment script **pulls the image from ECR** and starts the containers.
-
 
 **Manual steps on EC2 (if needed):**
 
