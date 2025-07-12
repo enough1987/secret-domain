@@ -136,8 +136,8 @@ _For more details, see the workflow in `.github/workflows/deploy.yml`._
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/<your-username>/RTK-Query.git
-   cd RTK-Query
+   git clone https://github.com/enough1987/secret-domain.git
+   cd secret-domain
 ````
 
 2. **Start backend and Nginx (with local build):**
@@ -172,10 +172,11 @@ _For more details, see the workflow in `.github/workflows/deploy.yml`._
 - The backend Docker image is built and pushed to Amazon ECR by GitHub Actions.
 - On EC2, the deployment script **pulls the image from ECR** and starts the containers.
 
+
 **Manual steps on EC2 (if needed):**
 
 ```bash
-cd ~/RTK-Query
+cd ~/secret-domain
 docker-compose pull
 docker-compose up -d
 ```
@@ -234,7 +235,7 @@ docker pull <your-ecr-registry>/<your-repo>:latest
 
 - **Deploy backend manually (on EC2):**
   ```bash
-  cd ~/RTK-Query
+  cd ~/secret-domain
   git pull
   docker-compose up --build -d
   ```
