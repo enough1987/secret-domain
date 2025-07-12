@@ -1,4 +1,4 @@
-# RTK-Query Fullstack App
+# Todo Fullstack App
 
 This project is a fullstack application with a React frontend (built with Vite), a Node.js/NestJS backend, and AWS infrastructure using S3, EC2, CloudFront, Route 53. Deployment is automated via GitHub Actions.
 

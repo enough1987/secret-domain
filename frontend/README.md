@@ -1,7 +1,7 @@
 # RTK-Query
 
 A demo React application using Redux Toolkit Query (RTK Query) for efficient data fetching, caching, and state management.  
-This project showcases CRUD operations for todos and photos, integration with a mock REST API (json-server), and modern UI with Tailwind CSS.
+This project showcases CRUD operations for todos and photos, integration with a mock REST API (nestjs + postgres), and modern UI with Tailwind CSS.
 
 ## Features
 
@@ -18,7 +18,6 @@ This project showcases CRUD operations for todos and photos, integration with a 
 - Redux Toolkit & RTK Query
 - TypeScript
 - Tailwind CSS
-- json-server
 
 ## Getting Started
 

@@ -1,5 +1,0 @@
-backend:
-  build:
-    context: ./backend
-    dockerfile: Dockerfile
-  image: 876528174456.dkr.ecr.eu-north-1.amazonaws.com/todo:latest
