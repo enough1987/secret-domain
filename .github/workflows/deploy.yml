@@ -60,7 +60,7 @@ jobs:
 
   deploy-backend:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     environment: production
 
     steps:
@@ -79,6 +79,15 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Delete all images from ECR
+        run: |
+          aws ecr list-images --repository-name ${{ secrets.ECR_REPOSITORY }} --query 'imageIds[*]' --output json > delete.json
+          if [ -s delete.json ]; then
+            aws ecr batch-delete-image --repository-name ${{ secrets.ECR_REPOSITORY }} --image-ids file://delete.json
+          else
+            echo "No images to delete."
+          fi
 
       - name: Build Docker image
         run: |
