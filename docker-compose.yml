@@ -1,5 +1,6 @@
 networks:
   dev:
+    name: todo_dev # Name the network for the project
     driver: bridge  # (default) Use bridge network for inter-container communication
 
 services:
