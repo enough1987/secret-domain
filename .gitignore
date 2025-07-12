@@ -44,3 +44,5 @@ backend/.env.production
 package-lock.json
 frontend/package-lock.json
 backend/package-lock.json
+
+info.txt

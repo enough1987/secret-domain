@@ -40,7 +40,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1 # or your region
+          aws-region: ${{ secrets.AWS_REGION }} # or your region
 
       - name: Deploy to S3
         run: |
@@ -56,167 +56,69 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-north-1
+          AWS_REGION: ${{ secrets.AWS_REGION }}
 
   deploy-backend:
-    runs-on: ubuntu-latest # Use Ubuntu runner for the job
-    timeout-minutes: 15 # Set a timeout for the job
-
-    # Add environment for better secrets management
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: production
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Fetch all history for proper git operations
+          fetch-depth: 0
 
-      # Add error handling for AWS credentials
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} # AWS access key
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # AWS secret
-          aws-region: eu-north-1 # AWS region
-        id: aws-credentials
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # Add pre-deployment checks
-      - name: Check AWS Connection
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
         run: |
-          aws sts get-caller-identity  # Verify AWS credentials
-          aws ec2 describe-instances --instance-ids i-0d604cfeb07f96aec  # Check instance
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest ./backend
+
+      - name: Tag Docker image
+        run: |
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.EC2_HOST }} # EC2 public DNS or IP
-          username: ec2-user # Default EC2 username
-          key: ${{ secrets.EC2_SSH_KEY }} # SSH private key
-          timeout: 30m # <-- Add this line for a 30-minute timeout
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 30m
           script: |
-            set -exuo pipefail  # Exit on error and print commands
-            trap 'echo "==== ERROR: Showing last 100 lines of backend logs ===="; docker-compose logs --tail=100 backend || true; echo "==== ERROR: Showing docker ps ===="; docker ps -a; exit 1' ERR
-            echo "==== install curl packages ===="
-            sudo yum install -y curl
-
-            echo "==== Cleaning yum cache ===="
-            sudo yum clean all
-            sudo rm -rf /var/cache/yum
-
-            echo "==== Installing required packages ===="
-            sudo yum update -y
-            sudo yum install -y --allowerasing git docker firewalld curl wget
-
-            echo "==== Freeing disk space ===="
-            docker system prune -af || true
-            docker volume prune -f || true
-            sudo rm -rf /var/lib/docker/tmp/*
-            sudo rm -rf /var/cache/yum
-
-            echo "==== Installing Docker Compose ===="
-            DOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
-            sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-
-            echo "==== Starting and enabling Docker ===="
+            set -exuo pipefail
+            sudo yum install -y docker
             sudo systemctl start docker
             sudo systemctl enable docker
-            sudo usermod -aG docker $USER
 
-            echo "==== Configuring Git credentials for private repo access ===="
-            git config --global credential.helper store
-            echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+            # Login to ECR
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
-            APP_DIR=~/RTK-Query
-            echo "==== Deploying to $APP_DIR ===="
+            cd ~/RTK-Query
 
-            if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
-              echo "==== Removing invalid repository... ===="
-              rm -rf "$APP_DIR"
-            fi
-
-            echo "==== Fixing permissions for RTK-Query directory ===="
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/RTK-Query
-            sudo chmod -R u+w /home/ec2-user/RTK-Query
-
-            if [ ! -d "$APP_DIR" ]; then
-              echo "==== Cloning fresh repository... ===="
-              git clone https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git "$APP_DIR"
-            else
-              echo "==== Updating existing repository... ===="
-              cd "$APP_DIR"
-              git fetch origin
-              git reset --hard origin/main
-            fi
-
-            echo "==== Listing backend directory contents ===="
-            ls -la
-
-            if [ ! -f "docker-compose.yml" ]; then
-              echo "==== Error: docker-compose.yml not found! ===="
-              exit 1
-            fi
-
-            echo "==== Cleaning up existing services... ===="
-            sudo systemctl stop nginx || true
-            sudo systemctl disable nginx || true
-            sudo lsof -ti:80 | xargs -r sudo kill -9 || true
-            docker-compose down --remove-orphans || true
-
-            echo "==== Verifying port 80 availability ===="
-            if sudo lsof -i :80; then
-              echo "==== Error: Port 80 is still in use ===="
-              exit 1
-            fi
-
-            echo "==== Checking network configuration ===="
-            sudo netstat -tulpn
-            curl -v localhost:80 || true
-
-            echo "==== Setting up environment variables ===="
+            # Set up environment variables
             echo "${{ secrets.BACKEND_ENV }}" > backend/.env
 
-            echo "==== Starting deployment from $(pwd) ===="
-            docker-compose config
-            echo "==== Pulling latest images ===="
+            # Pull latest image and start containers
             docker-compose pull
-            echo "==== Building and starting containers ===="
-            if ! docker-compose up --build; then
-              echo "==== ERROR: docker-compose up failed ===="
-              docker-compose logs --tail=100
-              docker-compose ps
-              exit 1
-            fi
+            docker-compose up -d
 
-            echo "==== Deployment verification: docker-compose ps ===="
-            docker-compose ps
-            echo "==== Deployment verification: docker ps -a ===="
-            docker ps -a
-            echo "==== Deployment verification: docker network ls ===="
-            docker network ls
-            echo "==== Deployment verification: docker-compose logs ===="
-            docker-compose logs --tail=50
-
-            echo "==== Testing external access (curl http://localhost:80) ===="
-            curl -v http://localhost:80
-
-            echo "==== Logging into Docker (if using private images) ===="
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin || true
-
-            echo "==== Starting health check loop ===="
-            MAX_RETRIES=5
-            COUNT=0
-            while [ $COUNT -lt $MAX_RETRIES ]; do
-              echo "==== Health check attempt $((COUNT+1)) of $MAX_RETRIES ===="
-              if curl -v http://localhost:80; then
-                echo "==== Application is healthy ===="
-                exit 0
-              fi
-              COUNT=$((COUNT+1))
-              sleep 10
-            done
-            echo "==== Health check failed after $MAX_RETRIES attempts ===="
-            exit 1
+            # Health check
+            curl -v http://localhost:80 || true
 
       - name: Invalidate CloudFront cache
         run: |
@@ -224,4 +126,4 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: eu-north-1
+          AWS_REGION: ${{ secrets.AWS_REGION }}
