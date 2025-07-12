@@ -5,59 +5,6 @@ on:
     branches: [main] # Trigger deployment on push to main branch
 
 jobs:
-  deploy-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Set npm registry to public
-        run: npm config set registry https://registry.npmjs.org/
-
-      - name: Clear npm cache and remove .npmrc
-        run: |
-          rm -f ~/.npmrc
-          npm cache clean --force
-
-      - name: Debug npm config
-        run: npm config list
-
-      - name: Install dependencies and build
-        working-directory: ./frontend
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: |
-          npm install
-          npm run build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }} # or your region
-
-      - name: Deploy to S3
-        run: |
-          aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
-      - name: log s3 bucket  Website endpoint URL
-        run: |
-          echo "( CloudFront URL with domain name ) S3 Website endpoint URL: https://secret-domain.net/"
-          aws s3 ls s3://todo-app2025-frontend
-
-      - name: Invalidate CloudFront cache
-        run: |
-          aws cloudfront create-invalidation --distribution-id E1XA1M1DY5S53X --paths "/*"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-
   deploy-backend:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -143,6 +90,56 @@ jobs:
             # Health check
             curl -v http://localhost:80 || true
 
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: [deploy-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set npm registry to public
+        run: npm config set registry https://registry.npmjs.org/
+
+      - name: Clear npm cache and remove .npmrc
+        run: |
+          rm -f ~/.npmrc
+          npm cache clean --force
+
+      - name: Debug npm config
+        run: npm config list
+
+      - name: Install dependencies and build
+        working-directory: ./frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm install
+          npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }} # or your region
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
+      - name: log s3 bucket  Website endpoint URL
+        run: |
+          echo "( CloudFront URL with domain name ) S3 Website endpoint URL: https://secret-domain.net/"
+          aws s3 ls s3://todo-app2025-frontend
+
+  invalidate-cloudfront:
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    steps:
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation --distribution-id E1XA1M1DY5S53X --paths "/*"
