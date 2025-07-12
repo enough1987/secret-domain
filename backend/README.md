@@ -57,18 +57,48 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Docker & AWS Deployment
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+This backend is designed to be deployed using Docker and AWS. The recommended production deployment flow is:
+
+1. **Build and push Docker image:**
+   - The Docker image is built from the `backend` directory and pushed to AWS ECR (Elastic Container Registry) using GitHub Actions.
+
+2. **Deploy on EC2:**
+   - On your EC2 instance, only the following files are needed:
+     - `docker-compose.yml`
+     - `nginx.conf`
+     - (optionally) a `logs/` directory for persistent logs
+   - The `.env` file is created automatically by the deployment workflow.
+   - The EC2 instance pulls the latest image from ECR and starts the containers using `docker-compose`.
+
+3. **CloudFront Invalidation:**
+   - After deployment, the CloudFront cache is invalidated to ensure users get the latest version.
+
+**You do NOT need to copy the source code or Dockerfile to the EC2 instance.**
+
+### Manual local Docker run (for testing)
+
+To run the backend locally with Docker:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker build -t my-backend:latest .
+docker run --env-file .env -p 3001:3001 my-backend:latest
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Useful commands
+
+```bash
+# Build and run with Docker Compose (local)
+docker-compose up --build
+
+# View logs
+docker-compose logs
+
+# Stop containers
+docker-compose down
+```
 
 ## Resources
 

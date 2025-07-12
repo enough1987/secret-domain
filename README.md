@@ -2,65 +2,6 @@
 
 This project is a fullstack application with a React frontend (built with Vite), a Node.js/NestJS backend, and AWS infrastructure using S3, EC2, CloudFront, Route 53. Deployment is automated via GitHub Actions.
 
----
-
-## AWS Architecture Overview
-
-### 1. S3 (Amazon Simple Storage Service)
-
-- **Purpose:** Hosts your built frontend (static files: HTML, JS, CSS, images).
-- **Access:** Not public; CloudFront is granted access via Origin Access Control (OAC).
-- **Bucket:** `todo-app2025-frontend`
-
-### 2. CloudFront (Content Delivery Network)
-
-- **Purpose:** Serves as the global entry point for your app, providing HTTPS, caching, and routing.
-- **Origins:**
-  - **S3 Origin:** Serves all frontend files (default behavior `*`).
-  - **EC2 Origin:** Proxies API requests (`/api/*`) to your backend server.
-- **Behaviors:**
-  - `*` → S3 origin (serves frontend)
-  - `/api/*` → EC2 origin (serves backend API)
-- **Security:** Uses OAC to securely fetch files from S3, even with S3 "Block all public access" enabled.
-- **Custom Domain:** Uses [https://secret-domain.net](https://secret-domain.net) via Route 53 and ACM certificate.
-
-### 3. EC2 (Elastic Compute Cloud)
-
-- **Purpose:** Runs your backend (Node.js/NestJS) and Nginx as a reverse proxy.
-- **Deployment:** Automated via GitHub Actions using SSH and Docker Compose.
-- **Nginx:** Listens on port 80 (HTTP), proxies `/api/` requests to the backend container.
-- **Backend:** Dockerized Node.js/NestJS app, listens on port 3001.
-
-### 4. Route 53 (DNS)
-
-- **Purpose:** Manages DNS for your custom domain.
-- **Setup:** An A/ALIAS record points `secret-domain.net` to your CloudFront distribution.
-
-### 5. GitHub Actions (CI/CD)
-
-- **Purpose:** Automates deployment for both frontend and backend.
-- **Frontend:** Builds and uploads to S3, then invalidates CloudFront cache.
-- **Backend:** SSHs into EC2, pulls latest code, and restarts Docker Compose services.
-
-### 6. Security
-
-- **S3:** "Block all public access" is ON. Only CloudFront (via OAC) can read objects.
-- **CloudFront:** Handles HTTPS for both frontend and API.
-- **EC2:** Only accessible via SSH for deployment and by CloudFront for API requests.
-
----
-
-## Request Flow
-
-1. **User visits** [https://secret-domain.net](https://secret-domain.net)
-   - CloudFront serves static files from S3.
-2. **User/API calls** [https://secret-domain.net/api/todos](https://secret-domain.net/api/todos)
-   - CloudFront routes `/api/*` to EC2’s Nginx, which proxies to the backend container.
-3. **All other paths** (e.g., `/`, `/about`, `/static/*`)
-   - CloudFront serves from S3 (with SPA routing via CloudFront Function if needed).
-
----
-
 ## Architecture Diagram
 
 ```
@@ -118,6 +59,70 @@ This project is a fullstack application with a React frontend (built with Vite),
 
 _For more details, see the workflow in `.github/workflows/deploy.yml`._
 
+## Workflow Diagram
+
+````
+
+- **A:** Developer pushes code to main branch.
+- **B:** GitHub Actions workflow starts.
+- **C:** Backend Docker image is built and pushed to ECR.
+- **D:** Frontend is built and uploaded to S3.
+- **E:** EC2 instance pulls the new backend image and restarts containers via SSH and docker-compose.
+- **F:** CloudFront cache is invalidated so users get the latest frontend and API.
+
+## Request Flow
+
+1. **User visits** [https://secret-domain.net](https://secret-domain.net)
+   - CloudFront serves static files from S3.
+2. **User/API calls** [https://secret-domain.net/api/todos](https://secret-domain.net/api/todos)
+   - CloudFront routes `/api/*` to EC2’s Nginx, which proxies to the backend container.
+3. **All other paths** (e.g., `/`, `/about`, `/static/*`)
+   - CloudFront serves from S3 (with SPA routing via CloudFront Function if needed).
+
+## AWS Architecture Overview
+
+### 1. S3 (Amazon Simple Storage Service)
+
+- **Purpose:** Hosts your built frontend (static files: HTML, JS, CSS, images).
+- **Access:** Not public; CloudFront is granted access via Origin Access Control (OAC).
+- **Bucket:** `todo-app2025-frontend`
+
+### 2. CloudFront (Content Delivery Network)
+
+- **Purpose:** Serves as the global entry point for your app, providing HTTPS, caching, and routing.
+- **Origins:**
+  - **S3 Origin:** Serves all frontend files (default behavior `*`).
+  - **EC2 Origin:** Proxies API requests (`/api/*`) to your backend server.
+- **Behaviors:**
+  - `*` → S3 origin (serves frontend)
+  - `/api/*` → EC2 origin (serves backend API)
+- **Security:** Uses OAC to securely fetch files from S3, even with S3 "Block all public access" enabled.
+- **Custom Domain:** Uses [https://secret-domain.net](https://secret-domain.net) via Route 53 and ACM certificate.
+
+### 3. EC2 (Elastic Compute Cloud)
+
+- **Purpose:** Runs your backend (Node.js/NestJS) and Nginx as a reverse proxy.
+- **Deployment:** Automated via GitHub Actions using SSH and Docker Compose.
+- **Nginx:** Listens on port 80 (HTTP), proxies `/api/` requests to the backend container.
+- **Backend:** Dockerized Node.js/NestJS app, listens on port 3001.
+
+### 4. Route 53 (DNS)
+
+- **Purpose:** Manages DNS for your custom domain.
+- **Setup:** An A/ALIAS record points `secret-domain.net` to your CloudFront distribution.
+
+### 5. GitHub Actions (CI/CD)
+
+- **Purpose:** Automates deployment for both frontend and backend.
+- **Frontend:** Builds and uploads to S3, then invalidates CloudFront cache.
+- **Backend:** SSHs into EC2, pulls latest code, and restarts Docker Compose services.
+
+### 6. Security
+
+- **S3:** "Block all public access" is ON. Only CloudFront (via OAC) can read objects.
+- **CloudFront:** Handles HTTPS for both frontend and API.
+- **EC2:** Only accessible via SSH for deployment and by CloudFront for API requests.
+
 ## Local Development
 
 ### Prerequisites
@@ -133,7 +138,7 @@ _For more details, see the workflow in `.github/workflows/deploy.yml`._
    ```bash
    git clone https://github.com/<your-username>/RTK-Query.git
    cd RTK-Query
-   ```
+````
 
 2. **Start backend and Nginx (with local build):**
 
