@@ -42,7 +42,7 @@ services:
     restart: unless-stopped
 
   backend:
-    image: 876528174456.dkr.ecr.eu-north-1.amazonaws.com/todo:latest
+    image: 876528174456.dkr.ecr.eu-north-1.amazonaws.com/todo:latest-${GITHUB_RUN_NUMBER}
     container_name: backend
     ports:
       - "3001:3001"
