@@ -32,6 +32,15 @@ services:
         max-file: "3"      # Max number of log files
     restart: unless-stopped  # Always restart unless stopped manually
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - dev
+    restart: unless-stopped
+
   backend:
     image: 876528174456.dkr.ecr.eu-north-1.amazonaws.com/todo:latest
     container_name: backend

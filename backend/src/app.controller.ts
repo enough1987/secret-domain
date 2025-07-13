@@ -9,17 +9,25 @@ import {
 } from '@nestjs/common';
 import { AppService } from './services/app.service';
 import { Todo, Photo } from '../generated/prisma';
+import { PrismaService } from './services/prisma.service';
+import { RedisService } from './services/redis.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   @Get('/')
   async root() {
-    const isConnected = await this.appService.isDbConnected();
+    const isDbConnected = await this.prisma.isDbConnected();
+    const redis = this.redis.getClient();
     return {
-      status: isConnected ? 'ok' : 'error',
-      db: isConnected,
+      status: isDbConnected ? 'ok' : 'error',
+      db: isDbConnected,
+      cashe: !!redis,
       version: process.env.npm_package_version || 'unknown',
     };
   }

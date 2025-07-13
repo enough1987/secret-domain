@@ -1,25 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { Todo, Photo } from '../../generated/prisma';
 import { PrismaService } from './prisma.service';
+import { RedisService } from './redis.service';
+
+const cacheKey = 'todos:all';
 
 @Injectable()
 export class AppService {
-  constructor(private prisma: PrismaService) {}
-
-  // Check DB connection
-  async isDbConnected(): Promise<boolean> {
-    try {
-      await this.prisma.$queryRaw`SELECT 1`;
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService, // inject here
+  ) {}
 
   // Get all todos
   async getTodos(): Promise<Todo[] | { error: string; details: string }> {
+    const cached = await this.redisService.getCashe(cacheKey);
+    if (cached) return JSON.parse(cached) as Todo[];
+
     try {
-      return await this.prisma.todo.findMany({ orderBy: { created: 'desc' } });
+      const todos = await this.prisma.todo.findMany({
+        orderBy: { created: 'desc' },
+      });
+      await this.redisService.setCache(cacheKey, JSON.stringify(todos));
+      return todos;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { error: 'Could not read todos', details: message };
@@ -31,12 +34,14 @@ export class AppService {
     todo: Omit<Todo, 'id' | 'created'>,
   ): Promise<Todo | { error: string; details: string }> {
     try {
-      return await this.prisma.todo.create({
+      const newTodo = await this.prisma.todo.create({
         data: {
           ...todo,
           created: new Date(),
         },
       });
+      await this.redisService.delCache(cacheKey); // Invalidate cache
+      return newTodo;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { error: 'Could not add todo', details: message };
@@ -48,10 +53,12 @@ export class AppService {
     todo: Partial<Todo> & Pick<Todo, 'id'>,
   ): Promise<Todo | { error: string; details: string }> {
     try {
-      return await this.prisma.todo.update({
+      const newtodo = await this.prisma.todo.update({
         where: { id: todo.id },
         data: { ...todo },
       });
+      await this.redisService.delCache(cacheKey); // Invalidate cache
+      return newtodo;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { error: 'Could not update todo', details: message };
@@ -64,6 +71,7 @@ export class AppService {
   ): Promise<{ id: string } | { error: string; details: string }> {
     try {
       await this.prisma.todo.delete({ where: { id } });
+      await this.redisService.delCache(cacheKey); // Invalidate cache
       return { id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

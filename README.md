@@ -7,7 +7,7 @@ This project is a fullstack application with a React frontend (built with Vite),
 ```
 +-------------------+        +-------------------+        +-----------------------+
 |                   |        |                   |        |                       |
-|      Browser      +------->+    CloudFront     +------->+          S3              |
+|      Browser      +------->+    CloudFront     +------->+          S3           |
 |   (User Client)   | HTTPS  | (CDN & Routing)   |  /*    | (Frontend SPA Static) |
 |                   |        |                   |        |                       |
 +-------------------+        +-------------------+        +-----------------------+
@@ -27,6 +27,16 @@ This project is a fullstack application with a React frontend (built with Vite),
                             |                   |
                             |      RDS          |
                             |  (PostgreSQL)     |
+                            +-------------------+
+                                    ^
+                                    |
+                                    | Redis Cache
+                                    v
+                            +-------------------+
+                            |                   |
+                            |      Redis        |
+                            |   (Dockerized)    |
+                            |   No ElastiCache  |
                             +-------------------+
 
 +-------------------+        +-------------------+
@@ -52,6 +62,7 @@ This project is a fullstack application with a React frontend (built with Vite),
 - **S3:** Hosts frontend static files.
 - **EC2:** Runs Nginx (reverse proxy) and backend (NestJS).
 - **RDS:** Managed PostgreSQL database.
+- **Redis:** Caching layer for backend API, runs as a Docker container.
 - **ECR:** Stores backend Docker images.
 - **GitHub Actions:** CI/CD pipeline for building and deploying.
 
@@ -250,6 +261,36 @@ docker pull <your-ecr-registry>/<your-repo>:latest
   Ensure backend is listening on `0.0.0.0:3001` and Nginx is proxying `/api/` correctly.
 - **Frontend not updating:**  
   Make sure CloudFront cache is invalidated after deploy.
+
+---
+
+## Caching with Redis
+
+This project uses **Redis** for caching API responses (e.g., todos list) to improve performance and reduce database load.
+
+- **Integration:** Redis is run as a Docker container alongside the backend using Docker Compose.
+- **Usage:** The backend (NestJS) checks Redis for cached data before querying the database. On data changes (add/update/delete), the cache is invalidated.
+- **Configuration:** The Redis connection is managed by `RedisService` in the backend. The default connection string is `redis://redis:6379` (Docker Compose network).
+
+### Running Redis Locally
+
+Redis is included in `docker-compose.yml`. To start all services (backend, nginx, redis):
+
+```bash
+docker-compose up --build
+```
+
+### Cache Expiration
+
+- Cached data (e.g., todos list) is set to expire after **1 day** by default.
+- You can adjust the expiration time in `backend/src/services/redis.service.ts`.
+
+---
+
+## Troubleshooting Cache
+
+- If you do not see `cashe: true` in the `/` endpoint, ensure the Redis container is running and the backend can connect to it.
+- Check backend logs for Redis connection errors.
 
 ---
 
