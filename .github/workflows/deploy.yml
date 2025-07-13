@@ -116,8 +116,14 @@ jobs:
           rm -f ~/.npmrc
           npm cache clean --force
 
-      - name: Debug npm config
-        run: npm config list
+      - name: Set build version
+        id: set_build_version
+        run: echo "BUILD_VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - name: Write build version to .env.production
+        working-directory: ./frontend
+        run: |
+          echo "VITE_BUILD_VERSION=${{ env.BUILD_VERSION }}" >> .env.production
 
       - name: Install dependencies and build
         working-directory: ./frontend
