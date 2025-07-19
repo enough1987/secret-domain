@@ -21,8 +21,8 @@ jobs:
       - name: Deploy CloudFormation stack
         run: |
           aws cloudformation deploy \
-            --template-file infrastructure.yml \   # <-- Make sure this matches your file name
-            --stack-name todo-app-stack \          # <-- Use a unique stack name for your project
+            --template-file infrastructure.yml \
+            --stack-name todo-app-stack \
             --capabilities CAPABILITY_NAMED_IAM
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
