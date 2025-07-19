@@ -15,11 +15,12 @@ datasource db {
 }
 
 model Todo {
-  id        String   @id @default(uuid())
-  title     String
-  priority  String
-  completed Boolean  @default(false)
-  created   DateTime @default(now())
+  id            String   @id @default(uuid())
+  title         String
+  priority      String
+  completed     Boolean  @default(false)
+  created       DateTime @default(now())
+  last_modified DateTime @updatedAt
 }
 
 model Photo {
@@ -31,4 +32,6 @@ model Photo {
 model Profile {
   id   Int    @id @default(1)
   name String
+  created       DateTime @default(now())
+  last_modified DateTime @updatedAt
 }

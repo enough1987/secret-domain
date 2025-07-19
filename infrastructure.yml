@@ -1,0 +1,136 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Fullstack TODO App Infrastructure
+
+Resources:
+  # S3 bucket for static frontend hosting
+  TodoAppBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: todo-app2025-frontend
+  # EC2 instance for backend deployment
+  TodoAppEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: eu-north-1 # <-- Replace with actual AMI ID for your region
+      KeyName: ec2Key # <-- Replace with your actual EC2 key pair name
+      SecurityGroupIds:
+        - !Ref TodoAppSecurityGroup
+  # ECR repository for backend Docker images
+  TodoAppECR:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: todo-app-backend
+  # RDS PostgreSQL instance for backend database
+  TodoAppRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: todo-app-postgres
+      AllocatedStorage: 20 # GB
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: 15.4 # Or your preferred version
+      MasterUsername: masteruser # <-- Change for production
+      MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
+      VPCSecurityGroups:
+        - !GetAtt TodoAppRDSSecurityGroup.GroupId
+      PubliclyAccessible: false
+      BackupRetentionPeriod: 7
+      StorageType: gp2
+      MultiAZ: false
+
+  # Security group for EC2 instance (allows SSH and HTTPS)
+  TodoAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
+      SecurityGroupIngress:
+        # SSH access (restrict in production!)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        # HTTPS for public users
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        # HTTP for AWS services (replace with your VPC CIDR or load balancer SG)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.0.0.0/16 # Example: allow HTTP only from your VPC (replace with your actual VPC CIDR)
+
+  # Security group for RDS instance (allow EC2 access)
+  TodoAppRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow EC2 access to RDS
+      VpcId: vpc-020dfd6450e917a50 # <-- Replace with your actual VPC ID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !GetAtt TodoAppSecurityGroup.GroupId
+
+  # CloudFront distribution for CDN and custom domain
+  TodoAppCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - DomainName: !GetAtt TodoAppBucket.DomainName
+            Id: S3Origin
+            S3OriginConfig: {}
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true # <-- Use ACM certificate for custom domain and HTTPS
+
+  # ACM certificate for custom domain (must be validated manually in AWS Console)
+  TodoAppCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: secret-domain.net
+      ValidationMethod: DNS
+
+Outputs:
+  S3BucketName:
+    Value: !Ref TodoAppBucket
+    Description: S3 bucket for frontend
+
+  EC2InstanceId:
+    Value: !Ref TodoAppEC2Instance
+    Description: EC2 instance for backend
+
+  ECRRepositoryName:
+    Value: !Ref TodoAppECR
+    Description: ECR repository for backend Docker images
+
+  CloudFrontDistributionId:
+    Value: !Ref TodoAppCloudFront
+    Description: CloudFront distribution for frontend
+
+  RDSInstanceEndpoint:
+    Value: !GetAtt TodoAppRDS.Endpoint.Address
+    Description: RDS PostgreSQL endpoint
+# Example GitHub Actions deploy step (not part of CloudFormation template)
+# - name: Deploy CloudFormation stack
+#   run: |
+#     aws cloudformation deploy \
+#       --template-file infrastructure.yml \
+#       --stack-name todo-app-stack \
+#       --capabilities CAPABILITY_NAMED_IAM
+#   env:
+#     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#     AWS_REGION: ${{ secrets.AWS_REGION }}
