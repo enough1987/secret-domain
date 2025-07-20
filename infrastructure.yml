@@ -12,7 +12,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t3.micro
-      ImageId: eu-north-1 # <-- Replace with actual AMI ID for your region
+      ImageId: ami-09278528675a8d54e # <-- Replace with actual AMI ID for your region
       KeyName: ec2Key # <-- Replace with your actual EC2 key pair name
       SecurityGroupIds:
         - !Ref TodoAppSecurityGroup
