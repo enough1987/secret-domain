@@ -65,11 +65,11 @@ Resources:
           CidrIp: 10.0.0.0/16 # Example: allow HTTP only from your VPC (replace with your actual VPC CIDR)
 
   # Security group for RDS instance (allow EC2 access)
-  TSecretDomainNetRDSSecurityGroup:
+  SecretDomainNetRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow EC2 access to RDS
-      VpcId: vpc-020dfd6450e917a50 # <-- Replace with your actual VPC ID
+      VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
