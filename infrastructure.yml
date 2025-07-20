@@ -37,7 +37,7 @@ Resources:
       MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
       VPCSecurityGroups:
         - !GetAtt SecretDomainNetRDSSecurityGroup.GroupId
-      PubliclyAccessible: false
+      PubliclyAccessible: true
       BackupRetentionPeriod: 7
       StorageType: gp2
       MultiAZ: false
@@ -71,10 +71,16 @@ Resources:
       GroupDescription: Allow EC2 access to RDS
       VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
       SecurityGroupIngress:
+        # Existing rule for EC2 access
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !GetAtt SecretDomainNetSecurityGroup.GroupId
+        # Add this rule for your local IP
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 123.45.67.89/32 # <-- Your actual public IP
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:

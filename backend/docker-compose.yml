@@ -42,7 +42,10 @@ services:
     restart: unless-stopped
 
   backend:
-    image: 876528174456.dkr.ecr.eu-north-1.amazonaws.com/todo:${GITHUB_RUN_NUMBER}
+    image: ${BACKEND_IMAGE}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend
     ports:
       - "3001:3001"
