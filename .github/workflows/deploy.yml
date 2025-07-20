@@ -20,12 +20,12 @@ jobs:
 
       - name: Clean up failed CloudFormation stack
         run: |
-          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name todo-app-stack --region ${{ secrets.AWS_REGION }} --query "Stacks[0].StackStatus" --output text || echo "NOT_FOUND")
+          STACK_STATUS=$(aws cloudformation describe-stacks --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }} --query "Stacks[0].StackStatus" --output text || echo "NOT_FOUND")
           if [ "$STACK_STATUS" = "ROLLBACK_COMPLETE" ]; then
-            echo "Deleting failed stack todo-app-stack..."
-            aws cloudformation delete-stack --stack-name todo-app-stack --region ${{ secrets.AWS_REGION }}
+            echo "Deleting failed stack secret-domain-net-stack..."
+            aws cloudformation delete-stack --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }}
             # Wait for deletion to complete
-            aws cloudformation wait stack-delete-complete --stack-name todo-app-stack --region ${{ secrets.AWS_REGION }}
+            aws cloudformation wait stack-delete-complete --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }}
           else
             echo "No failed stack to delete."
           fi
@@ -34,7 +34,7 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file infrastructure.yml \
-            --stack-name todo-app-stack \
+            --stack-name secret-domain-net-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --region eu-north-1
         env:
@@ -147,12 +147,12 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync ./frontend/dist s3://todo-app2025-frontend --delete
+          aws s3 sync ./frontend/dist s3://secret-domain-net-frontend --delete
 
       - name: Log S3 bucket Website endpoint URL
         run: |
           echo "( CloudFront URL with domain name ) S3 Website endpoint URL: https://secret-domain.net/"
-          aws s3 ls s3://todo-app2025-frontend
+          aws s3 ls s3://secret-domain-net-frontend
 
   invalidate-cloudfront:
     runs-on: ubuntu-latest
