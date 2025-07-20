@@ -96,6 +96,9 @@ jobs:
           timeout: 30m
           envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,GITHUB_RUN_NUMBER,BACKEND_ENV,ECR_REGISTRY,ECR_REPOSITORY
           script: |
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
             set -exuo pipefail
             sudo yum install -y docker
             sudo systemctl start docker
