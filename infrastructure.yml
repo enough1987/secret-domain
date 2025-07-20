@@ -32,7 +32,7 @@ Resources:
       AllocatedStorage: 20 # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
-      EngineVersion: 17.4-R1 # <-- Use the supported version for your region
+      EngineVersion: 17.5 # <-- Use the exact version from the AWS Console
       MasterUsername: masteruser # <-- Change for production
       MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
       VPCSecurityGroups:
