@@ -47,7 +47,7 @@ services:
     image: ${BACKEND_IMAGE}
     container_name: backend
     ports:
-      - "80:80"
+      - "3001:3001"
     env_file:
       - ./.env
     environment:
