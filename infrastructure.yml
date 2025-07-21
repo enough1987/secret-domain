@@ -10,6 +10,34 @@ Resources:
       EnableDnsSupport: true
       EnableDnsHostnames: true
 
+  # Internet Gateway for VPC
+  SecretDomainNetInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: {}
+
+  # Attach Internet Gateway to VPC
+  SecretDomainNetVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref SecretDomainNetVPC
+      InternetGatewayId: !Ref SecretDomainNetInternetGateway
+
+  # Public subnet A for the application (eu-north-1a)
+  SecretDomainNetPublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref SecretDomainNetVPC
+      CidrBlock: 172.31.49.0/24
+      AvailabilityZone: eu-north-1a
+
+  # Public subnet B for the application (eu-north-1b)
+  SecretDomainNetPublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref SecretDomainNetVPC
+      CidrBlock: 172.31.48.0/24
+      AvailabilityZone: eu-north-1b
+
   # S3 bucket for static frontend hosting
   SecretDomainNetBucket:
     Type: AWS::S3::Bucket
@@ -25,6 +53,7 @@ Resources:
       KeyName: ec2Key
       SecurityGroupIds:
         - !Ref SecretDomainNetSecurityGroup
+      SubnetId: !Ref SecretDomainNetPublicSubnetA # <-- Specify subnet for the instance
 
   # ECR repository for backend Docker images
   SecretDomainNetECR:
@@ -50,12 +79,14 @@ Resources:
       StorageType: gp2
       MultiAZ: false
       DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
+      VPCId: !Ref SecretDomainNetVPC # <-- Specify VPC for the RDS instance
 
   # Security group for EC2 instance (allows SSH and HTTPS)
   SecretDomainNetSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
+      VpcId: !Ref SecretDomainNetVPC # <-- Specify VPC for the security group
       SecurityGroupIngress:
         # SSH access (restrict in production!)
         - IpProtocol: tcp
@@ -120,34 +151,6 @@ Resources:
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
-
-  # Internet Gateway for VPC
-  SecretDomainNetInternetGateway:
-    Type: AWS::EC2::InternetGateway
-    Properties: {}
-
-  # Attach Internet Gateway to VPC
-  SecretDomainNetVPCGatewayAttachment:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref SecretDomainNetVPC
-      InternetGatewayId: !Ref SecretDomainNetInternetGateway
-
-  # Public subnet A for the application (eu-north-1a)
-  SecretDomainNetPublicSubnetA:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref SecretDomainNetVPC
-      CidrBlock: 172.31.49.0/24
-      AvailabilityZone: eu-north-1a
-
-  # Public subnet B for the application (eu-north-1b)
-  SecretDomainNetPublicSubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref SecretDomainNetVPC
-      CidrBlock: 172.31.48.0/24
-      AvailabilityZone: eu-north-1b
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
