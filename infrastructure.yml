@@ -55,6 +55,19 @@ Resources:
         - !Ref SecretDomainNetSecurityGroup
       SubnetId: !Ref SecretDomainNetPublicSubnetA # <-- Specify subnet for the instance
 
+  # Elastic IP for EC2 instance
+  SecretDomainNetEC2EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  # Associate Elastic IP with EC2 instance
+  SecretDomainNetEC2EIPAssociation:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      InstanceId: !Ref SecretDomainNetEC2Instance
+      EIP: !Ref SecretDomainNetEC2EIP
+
   # ECR repository for backend Docker images
   SecretDomainNetECR:
     Type: AWS::ECR::Repository
