@@ -43,6 +43,10 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: secret-domain-net-frontend
+      AccessControl: Private
+      Tags:
+        - Key: Name
+          Value: secret-domain-net-frontend
 
   # EC2 instance for backend deployment
   SecretDomainNetEC2Instance:
@@ -202,6 +206,24 @@ Resources:
       SubnetIds:
         - !Ref SecretDomainNetPublicSubnetA
         - !Ref SecretDomainNetPublicSubnetB
+
+  # Bucket policy to allow CloudFront to access S3 bucket
+  SecretDomainNetBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SecretDomainNetBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: arn:aws:s3:::secret-domain-net-frontend/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
 
 Outputs:
   S3BucketName:
