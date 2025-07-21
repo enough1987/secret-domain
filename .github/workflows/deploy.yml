@@ -138,8 +138,7 @@ jobs:
 
 
             # Pull latest image and start containers
-            export BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest >> ~/.bashrc
-            source ~/.bashrc
+            export BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
             echo "BACKEND_IMAGE=$BACKEND_IMAGE"
             sudo docker-compose pull
             sudo docker-compose up -d
