@@ -209,6 +209,10 @@ Outputs:
     Value: !Ref SecretDomainNetEC2Instance
     Description: EC2 instance for backend
 
+  EC2ElasticIP:
+    Value: !Ref SecretDomainNetEC2EIP
+    Description: Elastic IP for EC2 instance
+
   ECRRepositoryName:
     Value: !Ref SecretDomainNetECR
     Description: ECR repository for backend Docker images

@@ -186,9 +186,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-frontend]
     steps:
+      - name: Get CloudFront Distribution ID from CloudFormation
+        id: get_cf_id
+        run: |
+          CF_ID=$(aws cloudformation describe-stacks \
+            --stack-name secret-domain-net-stack \
+            --region ${{ secrets.AWS_REGION }} \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
+            --output text)
+          echo "CLOUDFRONT_DISTRIBUTION_ID=$CF_ID" >> $GITHUB_ENV
+
       - name: Invalidate CloudFront cache
         run: |
-          aws cloudfront create-invalidation --distribution-id E1XA1M1DY5S53X --paths "/*"
+          aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
