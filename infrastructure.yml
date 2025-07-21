@@ -2,6 +2,14 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Fullstack App Infrastructure
 
 Resources:
+  # VPC for your infrastructure
+  SecretDomainNetVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 172.31.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
   # S3 bucket for static frontend hosting
   SecretDomainNetBucket:
     Type: AWS::S3::Bucket
@@ -70,7 +78,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow EC2 access to RDS
-      VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
+      VpcId: !Ref SecretDomainNetVPC
       SecurityGroupIngress:
         # Allow EC2 access
         - IpProtocol: tcp
@@ -122,30 +130,30 @@ Resources:
   SecretDomainNetVPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
+      VpcId: !Ref SecretDomainNetVPC
       InternetGatewayId: !Ref SecretDomainNetInternetGateway
 
   # Public subnet A for the application (eu-north-1a)
   SecretDomainNetPublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 172.31.49.0/24 # <-- Pick an unused CIDR within your VPC
+      VpcId: !Ref SecretDomainNetVPC
+      CidrBlock: 172.31.49.0/24
       AvailabilityZone: eu-north-1a
 
   # Public subnet B for the application (eu-north-1b)
   SecretDomainNetPublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 172.31.48.0/24 # <-- Your existing unused CIDR
+      VpcId: !Ref SecretDomainNetVPC
+      CidrBlock: 172.31.48.0/24
       AvailabilityZone: eu-north-1b
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: vpc-020dfd6450e917a50
+      VpcId: !Ref SecretDomainNetVPC
 
   # Route to allow internet access from the subnet
   SecretDomainNetPublicRoute:
