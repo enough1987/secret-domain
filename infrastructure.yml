@@ -155,7 +155,7 @@ Resources:
             Cookies:
               Forward: none
         ViewerCertificate:
-          AcmCertificateArn: arn:aws:acm:eu-north-1:876528174456:certificate/b97eeaa3-ef71-4894-a106-5758ee9deb5a
+          AcmCertificateArn: arn:aws:acm:us-east-1:876528174456:certificate/f87820f7-3923-4a46-9b72-d47885df1b17
           SslSupportMethod: sni-only
         Aliases:
           - secret-domain.net
