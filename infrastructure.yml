@@ -79,7 +79,6 @@ Resources:
       StorageType: gp2
       MultiAZ: false
       DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
-      VPCId: !Ref SecretDomainNetVPC # <-- Specify VPC for the RDS instance
 
   # Security group for EC2 instance (allows SSH and HTTPS)
   SecretDomainNetSecurityGroup:
