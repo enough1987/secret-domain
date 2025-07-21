@@ -155,7 +155,10 @@ Resources:
             Cookies:
               Forward: none
         ViewerCertificate:
-          CloudFrontDefaultCertificate: true # <-- Use ACM certificate for custom domain and HTTPS
+          AcmCertificateArn: b97eeaa3-ef71-4894-a106-5758ee9deb5a
+          SslSupportMethod: sni-only
+        Aliases:
+          - secret-domain.net
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SecretDomainNetCertificate:
