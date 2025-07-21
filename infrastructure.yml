@@ -125,14 +125,15 @@ Resources:
       VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
       InternetGatewayId: !Ref SecretDomainNetInternetGateway
 
-  # Public subnet for the application
+  # Public subnet A for the application (eu-north-1a)
   SecretDomainNetPublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 172.31.49.0/24 # <-- Pick an unused CIDR
+      CidrBlock: 172.31.49.0/24 # <-- Pick an unused CIDR within your VPC
       AvailabilityZone: eu-north-1a
 
+  # Public subnet B for the application (eu-north-1b)
   SecretDomainNetPublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
@@ -154,11 +155,17 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref SecretDomainNetInternetGateway
 
-  # Associate the public subnet with the public route table
-  SecretDomainNetSubnetRouteTableAssociation:
+  # Associate both public subnets with the public route table
+  SecretDomainNetSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref SecretDomainNetPublicSubnet
+      SubnetId: !Ref SecretDomainNetPublicSubnetA
+      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+
+  SecretDomainNetSubnetRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SecretDomainNetPublicSubnetB
       RouteTableId: !Ref SecretDomainNetPublicRouteTable
 
   # RDS subnet group for the database
