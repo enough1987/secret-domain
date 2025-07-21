@@ -130,7 +130,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 172.31.1.0/24 # <-- Valid subnet within your VPC
+      CidrBlock: 172.31.2.0/24 # <-- Change to an unused subnet CIDR
       AvailabilityZone: eu-north-1b # <-- Use your desired AZ
 
   # Public route table for the subnet
