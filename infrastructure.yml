@@ -41,6 +41,7 @@ Resources:
       BackupRetentionPeriod: 7
       StorageType: gp2
       MultiAZ: false
+      DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
 
   # Security group for EC2 instance (allows SSH and HTTPS)
   SecretDomainNetSecurityGroup:
@@ -71,16 +72,16 @@ Resources:
       GroupDescription: Allow EC2 access to RDS
       VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
       SecurityGroupIngress:
-        # Existing rule for EC2 access
+        # Allow EC2 access
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !GetAtt SecretDomainNetSecurityGroup.GroupId
-        # Add this rule for your local IP
+        # Allow access from your local computer
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          CidrIp: 123.45.67.89/32 # <-- Your actual public IP
+          CidrIp: 123.45.67.89/32 # <-- Replace with your actual public IP
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:
@@ -111,6 +112,55 @@ Resources:
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
+
+  # Internet Gateway for VPC
+  SecretDomainNetInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties: {}
+
+  # Attach Internet Gateway to VPC
+  SecretDomainNetVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: vpc-020dfd6450e917a50 # <-- Use your actual VPC ID
+      InternetGatewayId: !Ref SecretDomainNetInternetGateway
+
+  # Public subnet for the application
+  SecretDomainNetPublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: vpc-020dfd6450e917a50
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: eu-north-1b # <-- Use your desired AZ
+
+  # Public route table for the subnet
+  SecretDomainNetPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: vpc-020dfd6450e917a50
+
+  # Route to allow internet access from the subnet
+  SecretDomainNetPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref SecretDomainNetInternetGateway
+
+  # Associate the public subnet with the public route table
+  SecretDomainNetSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SecretDomainNetPublicSubnet
+      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+
+  # RDS subnet group for the database
+  SecretDomainNetRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Public subnet group for RDS
+      SubnetIds:
+        - !Ref SecretDomainNetPublicSubnet
 
 Outputs:
   S3BucketName:
