@@ -81,7 +81,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          CidrIp: 123.45.67.89/32 # <-- Replace with your actual public IP
+          CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:
@@ -130,7 +130,7 @@ Resources:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 10.0.1.0/24
+      CidrBlock: 172.31.1.0/24 # <-- Valid subnet within your VPC
       AvailabilityZone: eu-north-1b # <-- Use your desired AZ
 
   # Public route table for the subnet
