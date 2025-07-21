@@ -126,12 +126,19 @@ Resources:
       InternetGatewayId: !Ref SecretDomainNetInternetGateway
 
   # Public subnet for the application
-  SecretDomainNetPublicSubnet:
+  SecretDomainNetPublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: vpc-020dfd6450e917a50
-      CidrBlock: 172.31.48.0/24 # <-- This is outside your existing subnets
-      AvailabilityZone: eu-north-1b # <-- Use your desired AZ
+      CidrBlock: 172.31.49.0/24 # <-- Pick an unused CIDR
+      AvailabilityZone: eu-north-1a
+
+  SecretDomainNetPublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: vpc-020dfd6450e917a50
+      CidrBlock: 172.31.48.0/24 # <-- Your existing unused CIDR
+      AvailabilityZone: eu-north-1b
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
@@ -160,7 +167,8 @@ Resources:
     Properties:
       DBSubnetGroupDescription: Public subnet group for RDS
       SubnetIds:
-        - !Ref SecretDomainNetPublicSubnet
+        - !Ref SecretDomainNetPublicSubnetA
+        - !Ref SecretDomainNetPublicSubnetB
 
 Outputs:
   S3BucketName:
