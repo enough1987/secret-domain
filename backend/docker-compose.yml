@@ -1,3 +1,5 @@
+version: '3.8'
+
 networks:
   dev:
     name: todo_dev # Name the network for the project
@@ -45,7 +47,7 @@ services:
     image: ${BACKEND_IMAGE}
     container_name: backend
     ports:
-      - "3001:3001"
+      - "80:80"
     env_file:
       - ./.env
     environment:
