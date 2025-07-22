@@ -36,6 +36,7 @@ jobs:
 
       - name: Attach or Reuse OAC for CloudFront S3 Origin
         run: |
+          set -euo pipefail
           STACK_NAME=secret-domain-net-stack
           REGION=${{ secrets.AWS_REGION }}
           OAC_NAME=OAC-SecretDomainNet
