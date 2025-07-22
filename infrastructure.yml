@@ -113,11 +113,11 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        # HTTP for AWS services (replace with your VPC CIDR or load balancer SG)
+        # HTTP for CloudFront (allow from anywhere)
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 172.31.0.0/16 # Allow HTTP only from your VPC
+          CidrIp: 0.0.0.0/0
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SecretDomainNetRDSSecurityGroup:
