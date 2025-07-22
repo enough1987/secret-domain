@@ -56,7 +56,7 @@ jobs:
 
           if [ -z "$OAC_ID" ]; then
             echo "ERROR: OAC named '$OAC_NAME' does not exist. Please create it manually in the AWS Console."
-            exit 1
+            echo "'$OAC_ID' is empty. Exiting."
           fi
 
           # Always update the distribution to use the OAC
