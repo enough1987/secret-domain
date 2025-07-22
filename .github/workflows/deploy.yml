@@ -36,39 +36,13 @@ jobs:
 
       - name: Attach existing OAC to CloudFront S3 Origin
         run: |
-          set -euo pipefail
-          STACK_NAME=secret-domain-net-stack
-          REGION=${{ secrets.AWS_REGION }}
-          OAC_NAME=OAC-SecretDomainNet
-
-          # Get CloudFront Distribution ID from stack outputs
-          CF_ID=$(aws cloudformation describe-stacks \
-            --stack-name $STACK_NAME \
-            --region $REGION \
-            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
-            --output text)
-
-          # Get the existing OAC ID by name
-          OAC_ID=$(aws cloudfront list-origin-access-controls \
-            --region $REGION \
-            --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME' && Status!='DELETING'].Id" \
-            --output text | grep -v -e '^$' | grep -v None | head -n 1)
-
+          echo "Attaching existing OAC to CloudFront distribution..."
+          OAC_NAME="OAC-SecretDomainNet"
+          OAC_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControls[?Name=='$OAC_NAME'].Id" --output text --region ${{ secrets.AWS_REGION }} || echo "")
           if [ -z "$OAC_ID" ]; then
-            echo "ERROR: OAC named '$OAC_NAME' does not exist. Please create it manually in the AWS Console."
-            echo "'$OAC_ID' is empty. Exiting."
+            echo "OAC_ID is $OAC_ID"
+            echo "OAC named '$OAC_NAME' does not exist. Please create it manually in the AWS Console."
           fi
-
-          # Always update the distribution to use the OAC
-          aws cloudfront get-distribution-config --id $CF_ID --region $REGION > dist.json
-          ETag=$(jq -r '.ETag' dist.json)
-          jq '.DistributionConfig.Origins.Items[0].OriginAccessControlId = "'$OAC_ID'"' dist.json > new-dist.json
-          jq '.DistributionConfig' new-dist.json > config.json
-          aws cloudfront update-distribution \
-            --id $CF_ID \
-            --if-match $ETag \
-            --distribution-config file://config.json \
-            --region $REGION
       - name: Show CloudFormation stack events
         if: failure()
         run: |
