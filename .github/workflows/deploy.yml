@@ -10,7 +10,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -34,10 +33,54 @@ jobs:
             --stack-name secret-domain-net-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --region eu-north-1
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Attach OAC to CloudFront origin
+        run: |
+          # Set variables
+          STACK_NAME=secret-domain-net-stack
+          REGION=${{ secrets.AWS_REGION }}
+          OAC_NAME=OAC-SecretDomainNet
+
+          # Get CloudFront Distribution ID from stack outputs
+          CF_ID=$(aws cloudformation describe-stacks \
+            --stack-name $STACK_NAME \
+            --region $REGION \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
+            --output text)
+
+          # Create OAC if it doesn't exist
+          OAC_ID=$(aws cloudfront list-origin-access-controls \
+            --region $REGION \
+            --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME'].Id" \
+            --output text)
+          if [ -z "$OAC_ID" ]; then
+            OAC_ID=$(aws cloudfront create-origin-access-control \
+              --region $REGION \
+              --origin-access-control-config '{
+                "Name": "'"$OAC_NAME"'",
+                "Description": "OAC for secret-domain-net-frontend",
+                "SigningProtocol": "sigv4",
+                "SigningBehavior": "always",
+                "OriginAccessControlOriginType": "s3"
+              }' \
+              --query 'OriginAccessControl.Id' \
+              --output text)
+          fi
+
+          # Get current distribution config and ETag
+          aws cloudfront get-distribution-config --id $CF_ID --region $REGION > dist.json
+          ETag=$(jq -r '.ETag' dist.json)
+          jq '.DistributionConfig.Origins.Items[0].OriginAccessControlId = "'$OAC_ID'"' dist.json > new-dist.json
+
+          # Remove ETag and DistributionConfig from new-dist.json for update
+          jq '.DistributionConfig' new-dist.json > config.json
+
+          # Update distribution to use OAC
+          aws cloudfront update-distribution \
+            --id $CF_ID \
+            --if-match $ETag \
+            --distribution-config file://config.json \
+            --region $REGION
       - name: Show CloudFormation stack events
         if: failure()
         run: |
