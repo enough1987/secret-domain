@@ -43,7 +43,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: secret-domain-net-frontend
-      AccessControl: Private
       Tags:
         - Key: Name
           Value: secret-domain-net-frontend
