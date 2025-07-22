@@ -36,7 +36,6 @@ jobs:
 
       - name: Attach or Reuse OAC for CloudFront S3 Origin
         run: |
-          # Set variables
           STACK_NAME=secret-domain-net-stack
           REGION=${{ secrets.AWS_REGION }}
           OAC_NAME=OAC-SecretDomainNet
@@ -69,15 +68,11 @@ jobs:
               --output text)
           fi
 
-          # Get current distribution config and ETag
+          # Always update the distribution to use the OAC
           aws cloudfront get-distribution-config --id $CF_ID --region $REGION > dist.json
           ETag=$(jq -r '.ETag' dist.json)
           jq '.DistributionConfig.Origins.Items[0].OriginAccessControlId = "'$OAC_ID'"' dist.json > new-dist.json
-
-          # Remove ETag and DistributionConfig from new-dist.json for update
           jq '.DistributionConfig' new-dist.json > config.json
-
-          # Update distribution to use OAC
           aws cloudfront update-distribution \
             --id $CF_ID \
             --if-match $ETag \
