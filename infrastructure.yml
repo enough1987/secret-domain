@@ -150,7 +150,7 @@ Resources:
             Id: S3Origin
             S3OriginConfig: {}
           # EC2 origin for backend API
-          - DomainName: !GetAtt SecretDomainNetEC2EIP.PublicIp
+          - DomainName: !GetAtt SecretDomainNetEC2Instance.PublicDnsName
             Id: ApiOrigin
             CustomOriginConfig:
               HTTPPort: 80
