@@ -145,7 +145,7 @@ Resources:
         Enabled: true
         DefaultRootObject: index.html
         Origins:
-          - DomainName: !GetAtt SecretDomainNetBucket.DomainName
+          - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
         DefaultCacheBehavior:
