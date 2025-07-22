@@ -56,9 +56,9 @@ Resources:
       KeyName: ec2Key
       SecurityGroupIds:
         - !Ref SecretDomainNetSecurityGroup
-      SubnetId: !Ref SecretDomainNetPublicSubnetA # <-- Specify subnet for the instance
+      SubnetId: !Ref SecretDomainNetPublicSubnetA # Place EC2 in public subnet A
 
-  # Elastic IP for EC2 instance
+  # Elastic IP for EC2 instance (for public access)
   SecretDomainNetEC2EIP:
     Type: AWS::EC2::EIP
     Properties:
@@ -96,12 +96,12 @@ Resources:
       MultiAZ: false
       DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
 
-  # Security group for EC2 instance (allows SSH and HTTPS)
+  # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SecretDomainNetSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
-      VpcId: !Ref SecretDomainNetVPC # <-- Specify VPC for the security group
+      VpcId: !Ref SecretDomainNetVPC
       SecurityGroupIngress:
         # SSH access (restrict in production!)
         - IpProtocol: tcp
@@ -117,9 +117,9 @@ Resources:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
-          CidrIp: 172.31.0.0/16 # Example: allow HTTP only from your VPC (replace with your actual VPC CIDR)
+          CidrIp: 172.31.0.0/16 # Allow HTTP only from your VPC
 
-  # Security group for RDS instance (allow EC2 access)
+  # Security group for RDS instance (allow EC2 access and your IP)
   SecretDomainNetRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -145,9 +145,17 @@ Resources:
         Enabled: true
         DefaultRootObject: index.html
         Origins:
+          # S3 origin for static frontend
           - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
+          # EC2 origin for backend API
+          - DomainName: !GetAtt SecretDomainNetEC2EIP.PublicIp
+            Id: ApiOrigin
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -157,6 +165,17 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+        CacheBehaviors:
+          # Route /api/* requests to backend API (EC2)
+          - PathPattern: /api/*
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
         ViewerCertificate:
           AcmCertificateArn: arn:aws:acm:us-east-1:876528174456:certificate/f87820f7-3923-4a46-9b72-d47885df1b17
           SslSupportMethod: sni-only
@@ -206,7 +225,7 @@ Resources:
         - !Ref SecretDomainNetPublicSubnetA
         - !Ref SecretDomainNetPublicSubnetB
 
-  # Bucket policy to allow CloudFront to access S3 bucket
+  # Bucket policy to allow CloudFront to access S3 bucket (OAC)
   SecretDomainNetBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
