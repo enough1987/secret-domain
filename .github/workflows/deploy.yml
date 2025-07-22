@@ -34,7 +34,7 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --region eu-north-1
 
-      - name: Attach or Reuse OAC for CloudFront S3 Origin
+      - name: Attach existing OAC to CloudFront S3 Origin
         run: |
           set -euo pipefail
           STACK_NAME=secret-domain-net-stack
@@ -48,25 +48,15 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
             --output text)
 
-          # Try to get existing OAC ID (filter out empty, None, and take the first valid)
+          # Get the existing OAC ID by name
           OAC_ID=$(aws cloudfront list-origin-access-controls \
             --region $REGION \
-            --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME'].Id" \
+            --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME' && Status!='DELETING'].Id" \
             --output text | grep -v -e '^$' | grep -v None | head -n 1)
 
-          # Only create if not found
           if [ -z "$OAC_ID" ]; then
-            OAC_ID=$(aws cloudfront create-origin-access-control \
-              --region $REGION \
-              --origin-access-control-config '{
-                "Name": "'"$OAC_NAME"'",
-                "Description": "OAC for secret-domain-net-frontend",
-                "SigningProtocol": "sigv4",
-                "SigningBehavior": "always",
-                "OriginAccessControlOriginType": "s3"
-              }' \
-              --query 'OriginAccessControl.Id' \
-              --output text)
+            echo "ERROR: OAC named '$OAC_NAME' does not exist. Please create it manually in the AWS Console."
+            exit 1
           fi
 
           # Always update the distribution to use the OAC
