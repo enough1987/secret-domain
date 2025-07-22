@@ -47,11 +47,11 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
             --output text)
 
-          # Try to get existing OAC ID (filter out empty and None)
+          # Try to get existing OAC ID (filter out empty, None, and take the first valid)
           OAC_ID=$(aws cloudfront list-origin-access-controls \
             --region $REGION \
             --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME'].Id" \
-            --output text | grep -v None | head -n 1)
+            --output text | grep -v -e '^$' | grep -v None | head -n 1)
 
           # Only create if not found
           if [ -z "$OAC_ID" ]; then
