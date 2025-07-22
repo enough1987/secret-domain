@@ -34,7 +34,7 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --region eu-north-1
 
-      - name: Attach OAC to CloudFront origin
+      - name: Attach or Reuse OAC for CloudFront S3 Origin
         run: |
           # Set variables
           STACK_NAME=secret-domain-net-stack
@@ -48,14 +48,14 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
             --output text)
 
-          # Try to get existing OAC ID
+          # Try to get existing OAC ID (filter out empty and None)
           OAC_ID=$(aws cloudfront list-origin-access-controls \
             --region $REGION \
             --query "OriginAccessControlList.Items[?OriginAccessControlName=='$OAC_NAME'].Id" \
-            --output text)
+            --output text | grep -v None | head -n 1)
 
           # Only create if not found
-          if [ -z "$OAC_ID" ] || [ "$OAC_ID" == "None" ]; then
+          if [ -z "$OAC_ID" ]; then
             OAC_ID=$(aws cloudfront create-origin-access-control \
               --region $REGION \
               --origin-access-control-config '{

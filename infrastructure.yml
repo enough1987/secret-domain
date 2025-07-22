@@ -281,5 +281,5 @@ Outputs:
 #     AWS_REGION: ${{ secrets.AWS_REGION }}
 
 # How to delete the stack if needed
-# aws cloudfront delete-origin-access-control --id OAC-SecretDomainNet
 # aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
+# aws cloudfront delete-origin-access-control --id OAC-SecretDomainNet
