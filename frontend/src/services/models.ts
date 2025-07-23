@@ -21,6 +21,13 @@ export type IPhoto = {
     "url": string,
 }
 
+export type IHealth = {
+  status: string,
+  db: boolean,
+  cache: boolean,
+  version: string
+}
+
 export const TodosTypes = {
   NOT_COMLETED: "not-completed",
   COMLETED: "completed"

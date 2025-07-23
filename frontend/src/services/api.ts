@@ -1,11 +1,14 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { type IPhoto, type ITodo } from './models'
+import { type IHealth, type IPhoto, type ITodo } from './models'
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({ baseUrl: `${import.meta.env.VITE_API_URL}/api` }),
-  tagTypes: ['todos', 'photos'],
+  tagTypes: ['todos', 'photos', 'health'],
   endpoints: (builder) => ({
+    checkHealth: builder.query<IHealth, void>({
+      query: () => `/`,
+    }),
     getTodos: builder.query<ITodo[], number | void>({
       // Accepts a limit parameter (default 10 if not provided)
       query: (limit = 10) => `/todos?_limit=${limit}`,
@@ -79,6 +82,7 @@ export const {
   useDeleteTodoMutation,
   useAddTodoMutation,
 
-  
-  useGetPhotosQuery 
+  useCheckHealthQuery,
+
+  useGetPhotosQuery
 } = api
