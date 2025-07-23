@@ -52,6 +52,7 @@ services:
       - ./.env
     environment:
       - NODE_ENV=production
+      - BACKEND_HOST=backend
     networks:
       - dev
     healthcheck:
