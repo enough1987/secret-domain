@@ -18,6 +18,7 @@ services:
     environment:
       - NGINX_ENTRYPOINT_QUIET_LOGS=0  # Show entrypoint logs
       - NGINX_ERROR_LOG_LEVEL=debug    # Set error log level
+      - BACKEND_HOST=backend
     depends_on:
       - backend   # Wait for backend to be ready
     networks:
