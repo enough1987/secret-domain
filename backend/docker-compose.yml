@@ -2,7 +2,7 @@ version: '3.8'
 
 networks:
   dev:
-    name: todo_dev # Name the network for the project
+    name: secret-domain-dev # Name the network for the project
     driver: bridge  # (default) Use bridge network for inter-container communication
 
 services:
@@ -52,7 +52,6 @@ services:
       - ./.env
     environment:
       - NODE_ENV=production
-      - BACKEND_HOST=backend
     networks:
       - dev
     healthcheck:
