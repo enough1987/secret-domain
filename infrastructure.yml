@@ -176,6 +176,9 @@ Resources:
               QueryString: true
               Cookies:
                 Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
         ViewerCertificate:
           AcmCertificateArn: arn:aws:acm:us-east-1:876528174456:certificate/f87820f7-3923-4a46-9b72-d47885df1b17
           SslSupportMethod: sni-only
