@@ -13,13 +13,16 @@ export class AppService {
   ) {}
 
   // Get all todos
-  async getTodos(): Promise<Todo[] | { error: string; details: string }> {
-    const cached = await this.redisService.getCashe(cacheKey);
+  async getTodos(
+    limit: number,
+  ): Promise<Todo[] | { error: string; details: string }> {
+    const cached = await this.redisService.getCache(cacheKey);
     if (cached) return JSON.parse(cached) as Todo[];
 
     try {
       const todos = await this.prisma.todo.findMany({
         orderBy: { created: 'desc' },
+        ...(limit ? { take: limit } : {}),
       });
       await this.redisService.setCache(cacheKey, JSON.stringify(todos));
       return todos;

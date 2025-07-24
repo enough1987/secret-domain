@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
 import { AppService } from './services/app.service';
 import { Todo, Photo } from '../generated/prisma';
@@ -33,8 +34,10 @@ export class AppController {
   }
 
   @Get('todos')
-  async getTodos(): Promise<Todo[] | { error: string; details: string }> {
-    return this.appService.getTodos();
+  async getTodos(
+    @Query('limit') limit: number,
+  ): Promise<Todo[] | { error: string; details: string }> {
+    return this.appService.getTodos(limit);
   }
 
   @Post('todos')

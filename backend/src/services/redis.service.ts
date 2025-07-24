@@ -9,9 +9,19 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     this.client = createClient({
       url: process.env.REDIS_URL || 'redis://redis:6379',
+      socket: {
+        reconnectStrategy: (retries) => {
+          if (retries > 2) {
+            // Stop retrying after 2 retries (3 attempts total)
+            return false;
+          }
+          // Retry after 2^retries * 100 ms, max 2s
+          return Math.min(2 ** retries * 100, 2000);
+        },
+      },
     });
-    this.client.on('error', (err: unknown) => {
-      console.error('Redis Client Error', err);
+    this.client.on('error', () => {
+      console.error('Redis Client Error');
     });
     await this.client.connect();
   }
@@ -29,18 +39,21 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client;
   }
 
-  async getCashe(cacheKey: string): Promise<string | void> {
+  async getCache(cacheKey: string): Promise<string | null> {
     const client = this.getClient();
-    await client?.get(cacheKey);
+    if (!client) return null;
+    return await client.get(cacheKey);
   }
 
-  async setCache(cacheKey: string, data: string): Promise<string | void> {
+  async setCache(cacheKey: string, data: string): Promise<void> {
     const client = this.getClient();
-    await client?.set(cacheKey, data, { EX: this.expirationTime });
+    if (!client) return;
+    await client.set(cacheKey, data, { EX: this.expirationTime });
   }
 
   async delCache(cacheKey: string): Promise<void> {
     const client = this.getClient();
-    await client?.del(cacheKey);
+    if (!client) return Promise.resolve();
+    await client.del(cacheKey);
   }
 }
