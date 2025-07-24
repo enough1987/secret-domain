@@ -24,7 +24,7 @@ services:
     networks:
       - dev  # Attach to 'dev' network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]  # Health check for Nginx
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/api"]  # Health check for Nginx
       interval: 10s
       timeout: 5s
       retries: 3
