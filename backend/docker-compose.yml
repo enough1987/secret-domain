@@ -18,13 +18,12 @@ services:
     environment:
       - NGINX_ENTRYPOINT_QUIET_LOGS=0  # Show entrypoint logs
       - NGINX_ERROR_LOG_LEVEL=debug    # Set error log level
-      - BACKEND_HOST=backend
     depends_on:
       - backend   # Wait for backend to be ready
     networks:
       - dev  # Attach to 'dev' network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost/api"]  # Health check for Nginx
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]  # Health check for Nginx
       interval: 10s
       timeout: 5s
       retries: 3
