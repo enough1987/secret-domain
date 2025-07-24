@@ -143,9 +143,10 @@ jobs:
 
 
             # Pull latest image and start containers
-            BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest sudo docker-compose down || true
-            BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest sudo docker-compose pull
-            BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest sudo docker-compose up -d    
+            echo "BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest" > .env
+            sudo docker-compose down || true
+            sudo docker-compose pull
+            sudo docker-compose up -d
 
             # Health check
             curl -v http://localhost:80 || true
