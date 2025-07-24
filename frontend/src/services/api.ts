@@ -11,7 +11,7 @@ export const api = createApi({
     }),
     getTodos: builder.query<ITodo[], number | void>({
       // Accepts a limit parameter (default 10 if not provided)
-      query: (limit = 10) => `/todos?_limit=${limit}`,
+      query: (limit = 10) => `/todos?limit=${limit}`,
       providesTags: (result) =>
         result
           ? [
