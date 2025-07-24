@@ -42,7 +42,7 @@ services:
       - "6379:6379"
     networks:
       - dev
-    restart: unless-stopped
+    restart: on-failure:3
 
   backend:
     image: ${BACKEND_IMAGE}
