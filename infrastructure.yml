@@ -149,6 +149,7 @@ Resources:
           - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
+            OriginAccessControlId: !Ref SecretDomainNetOAC
           # EC2 origin for backend API
           - DomainName: !GetAtt SecretDomainNetEC2Instance.PublicDnsName
             Id: ApiOrigin
@@ -254,6 +255,15 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
+
+  SecretDomainNetOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: OAC-SecretDomainNet
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
 Outputs:
   S3BucketName:
