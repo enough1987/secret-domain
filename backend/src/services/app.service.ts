@@ -2,20 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { Todo, Photo } from '../../generated/prisma';
 import { PrismaService } from './prisma.service';
 import { RedisService } from './redis.service';
-
-const cacheKey = 'todos:all';
-
 @Injectable()
 export class AppService {
   constructor(
     private prisma: PrismaService,
-    private redisService: RedisService, // inject here
+    private redisService: RedisService,
   ) {}
+
+  // Helper to generate cache key based on limit
+  private getTodosCacheKey(limit?: number) {
+    return limit ? `todos:all:limit=${limit}` : 'todos:all';
+  }
 
   // Get all todos
   async getTodos(
-    limit: number,
+    limit?: number,
   ): Promise<Todo[] | { error: string; details: string }> {
+    const cacheKey = this.getTodosCacheKey(limit);
     const cached = await this.redisService.getCache(cacheKey);
     if (cached) return JSON.parse(cached) as Todo[];
 
@@ -32,6 +35,14 @@ export class AppService {
     }
   }
 
+  // Invalidate all todos cache keys
+  private async invalidateTodosCache() {
+    const keys = await this.redisService.getKeys('todos:all*');
+    for (const key of keys) {
+      await this.redisService.delCache(key);
+    }
+  }
+
   // Add a new todo
   async addTodo(
     todo: Omit<Todo, 'id' | 'created'>,
@@ -43,7 +54,7 @@ export class AppService {
           created: new Date(),
         },
       });
-      await this.redisService.delCache(cacheKey); // Invalidate cache
+      await this.invalidateTodosCache(); // Invalidate all relevant cache keys
       return newTodo;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -60,7 +71,7 @@ export class AppService {
         where: { id: todo.id },
         data: { ...todo },
       });
-      await this.redisService.delCache(cacheKey); // Invalidate cache
+      await this.invalidateTodosCache();
       return newtodo;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -74,7 +85,7 @@ export class AppService {
   ): Promise<{ id: string } | { error: string; details: string }> {
     try {
       await this.prisma.todo.delete({ where: { id } });
-      await this.redisService.delCache(cacheKey); // Invalidate cache
+      await this.invalidateTodosCache();
       return { id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
