@@ -62,6 +62,11 @@ export class AppController {
 
   @Get('photos')
   async getPhotos(): Promise<Photo[] | { error: string; details: string }> {
-    return this.appService.getPhotos();
+    const photos = (await this.appService.getPhotos()) as Photo[];
+    if (photos?.length === 0) {
+      await this.appService.seedPhotos();
+      return this.appService.getPhotos();
+    }
+    return photos;
   }
 }

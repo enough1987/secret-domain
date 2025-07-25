@@ -103,4 +103,22 @@ export class AppService {
       return { error: 'Could not read photos', details: message };
     }
   }
+
+  // Generate a lot of photos with working URLs
+  async seedPhotos(
+    count: number = 100,
+  ): Promise<{ created: number } | { error: string; details: string }> {
+    try {
+      const photos: Photo[] = Array.from({ length: count }).map((_, i) => ({
+        id: (i + 1).toString(),
+        title: `Photo ${i + 1}`,
+        url: `https://picsum.photos/seed/${i + 1}/600/400`,
+      }));
+      await this.prisma.photo.createMany({ data: photos });
+      return { created: count };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { error: 'Could not generate photos', details: message };
+    }
+  }
 }
