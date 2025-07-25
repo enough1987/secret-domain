@@ -1,5 +1,5 @@
 import React from 'react'
-import { useGetPhotosQuery } from '../../services/api'
+import { useGetPhotosQuery } from '../../services/api/photoApi'
 import Photo from './Photo'
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from "react-virtualized-auto-sizer";

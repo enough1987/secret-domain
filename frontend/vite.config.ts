@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import type { ProxyOptions } from 'vite'
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import packageJson from './package.json'
+import path from 'path'
 
 export const ReactCompilerConfig = {
   target: '19',
@@ -102,6 +103,11 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
+    },
+    resolve: {
+      alias: {
+        '@src': path.resolve(__dirname, 'src'),
+      },
     },
   }
 })

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Priority, type ITodo } from '../../services/models'
-import { api } from '../../services/api'
+import { todoApi } from '../../services/api/todoApi'
 import TodosNotCompleted from './TodosNotCompleted'
 
 const defaultTodo: Omit<ITodo, 'id' | 'created'> = {
@@ -11,12 +11,12 @@ const defaultTodo: Omit<ITodo, 'id' | 'created'> = {
 
 const TodoAdd: React.FC = () => {
   const [todo, setTodo] = useState<Omit<ITodo, 'id' | 'created'>>(defaultTodo)
-  const [addTodo, { isLoading }] = api.useAddTodoMutation()
+  const [addTodo, { isLoading }] = todoApi.useAddTodoMutation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!todo.title.trim()) return
-    await addTodo({ ...todo })
+    await addTodo(todo).unwrap();
     setTodo(defaultTodo)
   }
 

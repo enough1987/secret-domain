@@ -1,9 +1,10 @@
 import React from 'react'
-import { selectCompletedFromTodos, useGetTodosQuery } from '../../services/api'
+import { selectCompletedFromTodos, useGetTodosQuery } from '../../services/api/todoApi'
 import Todo from './Todo'
+import { LIMIT_TODO } from '../../services/models'
 
 const TodosCompleted: React.FC = () => {
-  const { data, error, isLoading } = useGetTodosQuery(100, {
+  const { data, error, isLoading } = useGetTodosQuery(LIMIT_TODO, {
     selectFromResult: selectCompletedFromTodos,
   })
 

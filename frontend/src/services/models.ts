@@ -1,4 +1,10 @@
 
+export type ISelectFromResult<T> = {
+  data?: T
+  isLoading: boolean
+  error?: unknown       
+}
+
 export const Priority = {
   LOW: "low",
   MEDIUM: "medium",
@@ -32,6 +38,8 @@ export const TodosTypes = {
   NOT_COMLETED: "not-completed",
   COMLETED: "completed"
 } as const;
+
+export const LIMIT_TODO = 100;
 
 export const MenuRoutes = [
   { to: '/', title: 'Home' },

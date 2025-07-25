@@ -1,12 +1,12 @@
 import React from 'react'
 import packageJson from '../../../package.json'
-import { useCheckHealthQuery } from '../../services/api';
+import { useCheckHealthQuery } from '../../services/api/checkHealthApi'
 
 const buildVersion = import.meta.env.VITE_BUILD_VERSION
 
 const Home: React.FC = () => {
   const { data: healthData } = useCheckHealthQuery();
-  
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Home</h1>

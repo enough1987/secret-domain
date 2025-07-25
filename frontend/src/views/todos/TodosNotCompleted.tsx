@@ -1,10 +1,10 @@
 import React from 'react'
-import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../services/api'
+import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../services/api/todoApi'
 import Todo from './Todo'
-import type { ITodo } from '../../services/models'
+import { LIMIT_TODO, type ITodo } from '../../services/models'
 
 const TodosNotCompleted: React.FC = () => {
-  const { data, error, isLoading } = useGetTodosQuery(100, {
+  const { data, error, isLoading } = useGetTodosQuery(LIMIT_TODO, {
     selectFromResult: selectNotCompletedFromTodos,
   });
   const [updateTodo] = useUpdateTodoMutation()
@@ -12,7 +12,7 @@ const TodosNotCompleted: React.FC = () => {
 
 
   const onUpdate = (todo: ITodo) => {
-      updateTodo(todo)
+      updateTodo(todo);
   }
   
   const onDelete = (todo: ITodo) => {
