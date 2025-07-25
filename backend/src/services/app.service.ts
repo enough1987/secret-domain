@@ -112,7 +112,7 @@ export class AppService {
       const photos: Photo[] = Array.from({ length: count }).map((_, i) => ({
         id: (i + 1).toString(),
         title: `Photo ${i + 1}`,
-        url: `https://picsum.photos/seed/${i + 1}/600/400`,
+        url: `https://picsum.photos/seed/${i + 1}/600/400.webp`,
       }));
       await this.prisma.photo.createMany({ data: photos });
       return { created: count };

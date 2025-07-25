@@ -166,6 +166,7 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+          Compress: true # <-- Enable compression here
         CacheBehaviors:
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api/*
