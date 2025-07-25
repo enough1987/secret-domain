@@ -34,9 +34,7 @@ export class AppController {
   }
 
   @Get('todos')
-  async getTodos(
-    @Query('limit') limit: number,
-  ): Promise<Todo[] | { error: string; details: string }> {
+  async getTodos(@Query('limit') limit?: string) {
     return this.appService.getTodos(limit);
   }
 

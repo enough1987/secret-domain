@@ -10,14 +10,15 @@ export class AppService {
   ) {}
 
   // Helper to generate cache key based on limit
-  private getTodosCacheKey(limit?: number) {
+  private getTodosCacheKey(limit?: string): string {
     return limit ? `todos:all:limit=${limit}` : 'todos:all';
   }
 
   // Get all todos
   async getTodos(
-    limit?: number,
+    limit?: string,
   ): Promise<Todo[] | { error: string; details: string }> {
+    const parsedLimit = limit ? Number(limit) : undefined;
     const cacheKey = this.getTodosCacheKey(limit);
     const cached = await this.redisService.getCache(cacheKey);
     if (cached) return JSON.parse(cached) as Todo[];
@@ -25,7 +26,7 @@ export class AppService {
     try {
       const todos = await this.prisma.todo.findMany({
         orderBy: { created: 'desc' },
-        ...(limit ? { take: limit } : {}),
+        ...(limit ? { take: Number(parsedLimit) } : {}),
       });
       await this.redisService.setCache(cacheKey, JSON.stringify(todos));
       return todos;
