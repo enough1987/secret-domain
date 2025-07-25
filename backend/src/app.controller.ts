@@ -28,7 +28,7 @@ export class AppController {
     return {
       status: isDbConnected ? 'ok' : 'error',
       db: isDbConnected,
-      cashe: !!redis,
+      cache: !!redis,
       version: process.env.npm_package_version || 'unknown',
     };
   }

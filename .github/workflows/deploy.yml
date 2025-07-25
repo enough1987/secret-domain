@@ -33,16 +33,6 @@ jobs:
             --stack-name secret-domain-net-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --region eu-north-1
-
-      - name: Attach existing OAC to CloudFront S3 Origin
-        run: |
-          echo "Attaching existing OAC to CloudFront distribution..."
-          OAC_NAME="OAC-SecretDomainNet"
-          OAC_ID=$(aws cloudfront list-origin-access-controls --query "OriginAccessControls[?Name=='$OAC_NAME'].Id" --output text --region ${{ secrets.AWS_REGION }} || echo "")
-          if [ -z "$OAC_ID" ]; then
-            echo "OAC_ID is $OAC_ID"
-            echo "OAC named '$OAC_NAME' does not exist. Please create it manually in the AWS Console."
-          fi
       - name: Show CloudFormation stack events
         if: failure()
         run: |

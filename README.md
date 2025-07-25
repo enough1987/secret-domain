@@ -289,7 +289,7 @@ docker-compose up --build
 
 ## Troubleshooting Cache
 
-- If you do not see `cashe: true` in the `/` endpoint, ensure the Redis container is running and the backend can connect to it.
+- If you do not see `cache: true` in the `/` endpoint, ensure the Redis container is running and the backend can connect to it.
 - Check backend logs for Redis connection errors.
 
 ---
