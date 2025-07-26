@@ -167,6 +167,7 @@ Resources:
             Cookies:
               Forward: none
           Compress: true # <-- Enable compression here
+          ResponseHeadersPolicyId: !Ref MyResponseHeadersPolicy
         CacheBehaviors:
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api/*
@@ -265,6 +266,22 @@ Resources:
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
+
+  MyResponseHeadersPolicy:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: StaticAssetsCachePolicy
+        Comment: Cache static assets for 1 year
+        CorsConfig:
+          # ...if you need CORS...
+        CustomHeadersConfig:
+          Items: []
+        SecurityHeadersConfig: {}
+        ServerTimingHeadersConfig: {}
+        CacheControlHeadersConfig:
+          Override: true
+          CacheControl: public, max-age=31536000, immutable
 
 Outputs:
   S3BucketName:

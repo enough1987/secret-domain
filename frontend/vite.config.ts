@@ -104,7 +104,19 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      sourcemap: true
+      sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            redux: ['@reduxjs/toolkit', 'react-redux'],
+            router: ['react-router'],
+            icons: ['react-icons'],
+            virtual: ['react-virtualized-auto-sizer', 'react-window'],
+            tailwind: ['tailwindcss'],
+          }
+        }
+      }
     },
     define: {
       __APP_VERSION__: JSON.stringify(packageJson.version),
