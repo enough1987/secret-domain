@@ -12,7 +12,7 @@ const Photo: React.FC<PhotoProps> = ({ item }) => (
       <img
         src={item?.url || DEFAULT_URL}
         alt={item?.title || 'No title'}
-        className="rounded w-full object-cover"
+        className="rounded w-full min-w-[50px] min-h-[50px] object-cover"
         loading="lazy"
         onError={e => (e.currentTarget.src = DEFAULT_URL)}
       />

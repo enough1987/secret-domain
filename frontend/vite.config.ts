@@ -1,10 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import type { ProxyOptions } from 'vite'
+import type { PluginOption, ProxyOptions } from 'vite'
 import basicSsl from '@vitejs/plugin-basic-ssl';
 import packageJson from './package.json'
 import path from 'path'
+import { visualizer } from "rollup-plugin-visualizer";
 
 export const ReactCompilerConfig = {
   target: '19',
@@ -81,6 +82,10 @@ export default defineConfig(({ mode }) => {
       }), 
       tailwindcss(),
       basicSsl(),
+      visualizer({
+        filename: 'dist/report.html',
+        open: true,                  // auto-opens the report after build
+      }) as PluginOption,
     ],
     server: {
       host: '0.0.0.0',
