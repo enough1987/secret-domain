@@ -80,8 +80,6 @@ Resources:
   # RDS PostgreSQL instance for backend database
   SecretDomainNetRDS:
     Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
     Properties:
       DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
@@ -120,9 +118,6 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-sg-${AWS::AccountId}-${AWS::Region}
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SecretDomainNetRDSSecurityGroup:
@@ -141,9 +136,6 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-rds-sg-${AWS::AccountId}-${AWS::Region}
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:
@@ -154,7 +146,7 @@ Resources:
         DefaultRootObject: index.html
         Origins:
           # S3 origin for static frontend
-          - DomainName: !GetAtt SecretDomainNetBucket.RegionalDomainName
+          - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
             OriginAccessControlId: !Ref SecretDomainNetOAC
@@ -210,9 +202,6 @@ Resources:
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-cert-${AWS::AccountId}-${AWS::Region}
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
@@ -272,11 +261,10 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub OAC-SecretDomainNet-${AWS::AccountId}-${AWS::Region}
+        Name: OAC-SecretDomainNet
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
-    DeletionPolicy: Delete
 
 Outputs:
   S3BucketName:
@@ -316,5 +304,6 @@ Outputs:
 #     AWS_REGION: ${{ secrets.AWS_REGION }}
 
 # How to delete the stack if needed
+# aws s3 rm s3://secret-domain-net-frontend --recursive --region eu-north-1
+# aws ecr batch-delete-image --repository-name secret-domain-net-backend --image-ids $(aws ecr list-images --repository-name secret-domain-net-backend --query 'imageIds[*]' --output json) --region eu-north-1
 # aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
-# aws cloudfront delete-origin-access-control --id OAC-SecretDomainNet
