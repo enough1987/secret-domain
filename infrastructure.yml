@@ -42,10 +42,10 @@ Resources:
   SecretDomainNetBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
+      BucketName: secret-domain-net-frontend
       Tags:
         - Key: Name
-          Value: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
+          Value: secret-domain-net-frontend
 
   # EC2 instance for backend deployment
   SecretDomainNetEC2Instance:
@@ -56,10 +56,7 @@ Resources:
       KeyName: ec2Key
       SecurityGroupIds:
         - !Ref SecretDomainNetSecurityGroup
-      SubnetId: !Ref SecretDomainNetPublicSubnetA
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-ec2-${AWS::AccountId}-${AWS::Region}
+      SubnetId: !Ref SecretDomainNetPublicSubnetA # Place EC2 in public subnet A
 
   # Elastic IP for EC2 instance (for public access)
   SecretDomainNetEC2EIP:
@@ -78,13 +75,13 @@ Resources:
   SecretDomainNetECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub secret-domain-net-backend-${AWS::AccountId}-${AWS::Region}
+      RepositoryName: secret-domain-net-backend
 
   # RDS PostgreSQL instance for backend database
   SecretDomainNetRDS:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
+      DBInstanceIdentifier: secret-domain-net-postgres
       AllocatedStorage: 20 # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
@@ -121,9 +118,6 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-sg-${AWS::AccountId}-${AWS::Region}
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SecretDomainNetRDSSecurityGroup:
@@ -142,9 +136,6 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-rds-sg-${AWS::AccountId}-${AWS::Region}
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:
@@ -155,7 +146,7 @@ Resources:
         DefaultRootObject: index.html
         Origins:
           # S3 origin for static frontend
-          - DomainName: !GetAtt SecretDomainNetBucket.RegionalDomainName
+          - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
             OriginAccessControlId: !Ref SecretDomainNetOAC
@@ -176,7 +167,6 @@ Resources:
             Cookies:
               Forward: none
           Compress: true # <-- Enable compression here
-          ResponseHeadersPolicyId: !Ref MyResponseHeadersPolicy
         CacheBehaviors:
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api/*
@@ -212,9 +202,6 @@ Resources:
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
-      Tags:
-        - Key: Name
-          Value: !Sub secret-domain-net-cert-${AWS::AccountId}-${AWS::Region}
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
@@ -265,7 +252,7 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}/*
+            Resource: arn:aws:s3:::secret-domain-net-frontend/*
             Condition:
               StringEquals:
                 AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
@@ -274,26 +261,10 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub OAC-SecretDomainNet-${AWS::AccountId}-${AWS::Region}
+        Name: OAC-SecretDomainNet
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
-
-  MyResponseHeadersPolicy:
-    Type: AWS::CloudFront::ResponseHeadersPolicy
-    Properties:
-      ResponseHeadersPolicyConfig:
-        Name: !Sub StaticAssetsCachePolicy-${AWS::AccountId}-${AWS::Region}
-        Comment: Cache static assets for 1 year
-        CustomHeadersConfig:
-          Items:
-            - Header: Cache-Control
-              Value: public, max-age=31536000, immutable
-              Override: true
-        SecurityHeadersConfig: {}
-        ServerTimingHeadersConfig:
-          Enabled: true
-          SamplingRate: 0
 
 Outputs:
   S3BucketName:
@@ -334,4 +305,4 @@ Outputs:
 
 # How to delete the stack if needed
 # aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
-# aws cloudformation wait stack-delete-complete --stack-name secret-domain-net-stack --region eu-north-1
+# aws cloudfront delete-origin-access-control --id OAC-SecretDomainNet
