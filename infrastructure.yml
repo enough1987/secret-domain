@@ -280,7 +280,7 @@ Resources:
               Override: true
         SecurityHeadersConfig: {}
         ServerTimingHeadersConfig:
-          Enabled: true
+          Enabled: false
 
 Outputs:
   S3BucketName:
