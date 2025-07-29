@@ -13,7 +13,6 @@ Resources:
   # Internet Gateway for VPC
   SecretDomainNetInternetGateway:
     Type: AWS::EC2::InternetGateway
-    Properties: {}
 
   # Attach Internet Gateway to VPC
   SecretDomainNetVPCGatewayAttachment:
@@ -80,6 +79,11 @@ Resources:
   # RDS PostgreSQL instance for backend database
   SecretDomainNetRDS:
     Type: AWS::RDS::DBInstance
+    DependsOn:
+      - SecretDomainNetVPCGatewayAttachment
+      - SecretDomainNetPublicRoute
+      - SecretDomainNetSubnetRouteTableAssociationA
+      - SecretDomainNetSubnetRouteTableAssociationB
     Properties:
       DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
