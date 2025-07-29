@@ -42,10 +42,10 @@ Resources:
   SecretDomainNetBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: secret-domain-net-frontend
+      BucketName: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
         - Key: Name
-          Value: secret-domain-net-frontend
+          Value: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
 
   # EC2 instance for backend deployment
   SecretDomainNetEC2Instance:
@@ -75,13 +75,13 @@ Resources:
   SecretDomainNetECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: secret-domain-net-backend
+      RepositoryName: !Sub secret-domain-net-backend-${AWS::AccountId}-${AWS::Region}
 
   # RDS PostgreSQL instance for backend database
   SecretDomainNetRDS:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: secret-domain-net-postgres
+      DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
@@ -118,6 +118,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub secret-domain-net-sg-${AWS::AccountId}-${AWS::Region}
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SecretDomainNetRDSSecurityGroup:
@@ -136,6 +139,9 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
+      Tags:
+        - Key: Name
+          Value: !Sub secret-domain-net-rds-sg-${AWS::AccountId}-${AWS::Region}
 
   # CloudFront distribution for CDN and custom domain
   SecretDomainNetCloudFront:
@@ -195,6 +201,7 @@ Resources:
             ResponsePagePath: /index.html
             ResponseCode: 200
             ErrorCachingMinTTL: 0
+      Comment: !Sub secret-domain-net-cf-${AWS::AccountId}-${AWS::Region}
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SecretDomainNetCertificate:
@@ -202,6 +209,9 @@ Resources:
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
+      Tags:
+        - Key: Name
+          Value: !Sub secret-domain-net-cert-${AWS::AccountId}-${AWS::Region}
 
   # Public route table for the subnet
   SecretDomainNetPublicRouteTable:
@@ -252,7 +262,7 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: arn:aws:s3:::secret-domain-net-frontend/*
+            Resource: !Sub arn:aws:s3:::secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}/*
             Condition:
               StringEquals:
                 AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
@@ -261,7 +271,7 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: OAC-SecretDomainNet
+        Name: !Sub OAC-SecretDomainNet-${AWS::AccountId}-${AWS::Region}
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
