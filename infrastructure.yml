@@ -150,7 +150,6 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub secret-domain-net-cf-${AWS::AccountId}-${AWS::Region}
         Enabled: true
         DefaultRootObject: index.html
         Origins:
