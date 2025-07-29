@@ -84,6 +84,7 @@ Resources:
       - SecretDomainNetPublicRoute
       - SecretDomainNetSubnetRouteTableAssociationA
       - SecretDomainNetSubnetRouteTableAssociationB
+      - SecretDomainNetRDSSubnetGroup
     Properties:
       DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
@@ -310,4 +311,5 @@ Outputs:
 # How to delete the stack if needed
 # aws s3 rm s3://secret-domain-net-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
 # aws ecr batch-delete-image --repository-name secret-domain-net-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name secret-domain-net-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
+# aws rds delete-db-instance --db-instance-identifier secret-domain-net-postgres-876528174456-eu-north-1 --region eu-north-1 --skip-final-snapshot
 # aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
