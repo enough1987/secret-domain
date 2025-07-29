@@ -274,7 +274,15 @@ Resources:
         Name: StaticAssetsCachePolicy
         Comment: Cache static assets for 1 year
         CorsConfig:
-          # ...if you need CORS...
+          AccessControlAllowOrigins:
+            Items:
+              - "http://localhost:3000"
+              - "http://127.0.0.1:3000"
+          AccessControlAllowHeaders:
+            Items: ["*"]
+          AccessControlAllowMethods:
+            Items: ["GET", "HEAD", "OPTIONS"]
+          OriginOverride: true
         CustomHeadersConfig:
           Items: []
         SecurityHeadersConfig: {}
