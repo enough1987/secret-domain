@@ -308,6 +308,6 @@ Outputs:
 #     AWS_REGION: ${{ secrets.AWS_REGION }}
 
 # How to delete the stack if needed
-# aws s3 rm s3://secret-domain-net-frontend --recursive --region eu-north-1
-# aws ecr batch-delete-image --repository-name secret-domain-net-backend --image-ids $(aws ecr list-images --repository-name secret-domain-net-backend --query 'imageIds[*]' --output json) --region eu-north-1
+# aws s3 rm s3://secret-domain-net-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
+# aws ecr batch-delete-image --repository-name secret-domain-net-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name secret-domain-net-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
 # aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
