@@ -146,7 +146,7 @@ Resources:
         DefaultRootObject: index.html
         Origins:
           # S3 origin for static frontend
-          - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
+          - DomainName: !GetAtt SecretDomainNetBucket.RegionalDomainName
             Id: S3Origin
             S3OriginConfig: {}
             OriginAccessControlId: !Ref SecretDomainNetOAC
