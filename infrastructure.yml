@@ -279,7 +279,8 @@ Resources:
               Value: public, max-age=31536000, immutable
               Override: true
         SecurityHeadersConfig: {}
-        ServerTimingHeadersConfig: {}
+        ServerTimingHeadersConfig:
+          Enabled: true
 
 Outputs:
   S3BucketName:
