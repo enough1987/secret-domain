@@ -3,7 +3,7 @@ Description: Fullstack App Infrastructure
 
 Resources:
   # VPC for your infrastructure
-  SecretDomainNetVPC:
+  SDNVPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 172.31.0.0/16
@@ -11,82 +11,82 @@ Resources:
       EnableDnsHostnames: true
 
   # Internet Gateway for VPC
-  SecretDomainNetInternetGateway:
+  SDNInternetGateway:
     Type: AWS::EC2::InternetGateway
 
   # Attach Internet Gateway to VPC
-  SecretDomainNetVPCGatewayAttachment:
+  SDNVPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref SecretDomainNetVPC
-      InternetGatewayId: !Ref SecretDomainNetInternetGateway
+      VpcId: !Ref SDNVPC
+      InternetGatewayId: !Ref SDNInternetGateway
 
   # Public subnet A for the application (eu-north-1a)
-  SecretDomainNetPublicSubnetA:
+  SDNPublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref SecretDomainNetVPC
+      VpcId: !Ref SDNVPC
       CidrBlock: 172.31.49.0/24
       AvailabilityZone: eu-north-1a
 
   # Public subnet B for the application (eu-north-1b)
-  SecretDomainNetPublicSubnetB:
+  SDNPublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref SecretDomainNetVPC
+      VpcId: !Ref SDNVPC
       CidrBlock: 172.31.48.0/24
       AvailabilityZone: eu-north-1b
 
   # S3 bucket for static frontend hosting
-  SecretDomainNetBucket:
+  SDNBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
+      BucketName: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
         - Key: Name
-          Value: !Sub secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}
+          Value: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
 
   # EC2 instance for backend deployment
-  SecretDomainNetEC2Instance:
+  SDNEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t3.micro
       ImageId: ami-09278528675a8d54e
       KeyName: ec2Key
       SecurityGroupIds:
-        - !Ref SecretDomainNetSecurityGroup
-      SubnetId: !Ref SecretDomainNetPublicSubnetA # Place EC2 in public subnet A
+        - !Ref SDNSecurityGroup
+      SubnetId: !Ref SDNPublicSubnetA # Place EC2 in public subnet A
 
   # Elastic IP for EC2 instance (for public access)
-  SecretDomainNetEC2EIP:
+  SDNEC2EIP:
     Type: AWS::EC2::EIP
     Properties:
       Domain: vpc
 
   # Associate Elastic IP with EC2 instance
-  SecretDomainNetEC2EIPAssociation:
+  SDNEC2EIPAssociation:
     Type: AWS::EC2::EIPAssociation
     Properties:
-      InstanceId: !Ref SecretDomainNetEC2Instance
-      EIP: !Ref SecretDomainNetEC2EIP
+      InstanceId: !Ref SDNEC2Instance
+      EIP: !Ref SDNEC2EIP
 
   # ECR repository for backend Docker images
-  SecretDomainNetECR:
+  SDNECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub secret-domain-net-backend-${AWS::AccountId}-${AWS::Region}
+      RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
 
   # RDS PostgreSQL instance for backend database
-  SecretDomainNetRDS:
+  SDNRDS:
     Type: AWS::RDS::DBInstance
     DependsOn:
-      - SecretDomainNetVPCGatewayAttachment
-      - SecretDomainNetPublicRoute
-      - SecretDomainNetSubnetRouteTableAssociationA
-      - SecretDomainNetSubnetRouteTableAssociationB
-      - SecretDomainNetRDSSubnetGroup
+      - SDNVPCGatewayAttachment
+      - SDNPublicRoute
+      - SDNSubnetRouteTableAssociationA
+      - SDNSubnetRouteTableAssociationB
+      - SDNRDSSubnetGroup
     Properties:
-      DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
+      DBInstanceIdentifier: !Sub sdn-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
@@ -94,19 +94,19 @@ Resources:
       MasterUsername: masteruser # <-- Change for production
       MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
       VPCSecurityGroups:
-        - !GetAtt SecretDomainNetRDSSecurityGroup.GroupId
+        - !GetAtt SDNRDSSecurityGroup.GroupId
       PubliclyAccessible: true
       BackupRetentionPeriod: 7
       StorageType: gp2
       MultiAZ: false
-      DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
+      DBSubnetGroupName: !Ref SDNRDSSubnetGroup
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
-  SecretDomainNetSecurityGroup:
+  SDNSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
-      VpcId: !Ref SecretDomainNetVPC
+      VpcId: !Ref SDNVPC
       SecurityGroupIngress:
         # SSH access (restrict in production!)
         - IpProtocol: tcp
@@ -125,17 +125,17 @@ Resources:
           CidrIp: 0.0.0.0/0
 
   # Security group for RDS instance (allow EC2 access and your IP)
-  SecretDomainNetRDSSecurityGroup:
+  SDNRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow EC2 access to RDS
-      VpcId: !Ref SecretDomainNetVPC
+      VpcId: !Ref SDNVPC
       SecurityGroupIngress:
         # Allow EC2 access
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          SourceSecurityGroupId: !GetAtt SecretDomainNetSecurityGroup.GroupId
+          SourceSecurityGroupId: !GetAtt SDNSecurityGroup.GroupId
         # Allow access from your local computer
         - IpProtocol: tcp
           FromPort: 5432
@@ -143,7 +143,7 @@ Resources:
           CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
 
   # CloudFront distribution for CDN and custom domain
-  SecretDomainNetCloudFront:
+  SDNCloudFront:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -151,12 +151,12 @@ Resources:
         DefaultRootObject: index.html
         Origins:
           # S3 origin for static frontend
-          - DomainName: !Sub "${SecretDomainNetBucket}.s3.eu-north-1.amazonaws.com"
+          - DomainName: !Sub "${SDNBucket}.s3.eu-north-1.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
-            OriginAccessControlId: !Ref SecretDomainNetOAC
+            OriginAccessControlId: !Ref SDNOAC
           # EC2 origin for backend API
-          - DomainName: !GetAtt SecretDomainNetEC2Instance.PublicDnsName
+          - DomainName: !GetAtt SDNEC2Instance.PublicDnsName
             Id: ApiOrigin
             CustomOriginConfig:
               HTTPPort: 80
@@ -202,53 +202,53 @@ Resources:
             ErrorCachingMinTTL: 0
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
-  SecretDomainNetCertificate:
+  SDNCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
       DomainName: secret-domain.net
       ValidationMethod: DNS
 
   # Public route table for the subnet
-  SecretDomainNetPublicRouteTable:
+  SDNPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref SecretDomainNetVPC
+      VpcId: !Ref SDNVPC
 
   # Route to allow internet access from the subnet
-  SecretDomainNetPublicRoute:
+  SDNPublicRoute:
     Type: AWS::EC2::Route
     Properties:
-      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+      RouteTableId: !Ref SDNPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref SecretDomainNetInternetGateway
+      GatewayId: !Ref SDNInternetGateway
 
   # Associate both public subnets with the public route table
-  SecretDomainNetSubnetRouteTableAssociationA:
+  SDNSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref SecretDomainNetPublicSubnetA
-      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+      SubnetId: !Ref SDNPublicSubnetA
+      RouteTableId: !Ref SDNPublicRouteTable
 
-  SecretDomainNetSubnetRouteTableAssociationB:
+  SDNSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref SecretDomainNetPublicSubnetB
-      RouteTableId: !Ref SecretDomainNetPublicRouteTable
+      SubnetId: !Ref SDNPublicSubnetB
+      RouteTableId: !Ref SDNPublicRouteTable
 
   # RDS subnet group for the database
-  SecretDomainNetRDSSubnetGroup:
+  SDNRDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Public subnet group for RDS
       SubnetIds:
-        - !Ref SecretDomainNetPublicSubnetA
-        - !Ref SecretDomainNetPublicSubnetB
+        - !Ref SDNPublicSubnetA
+        - !Ref SDNPublicSubnetB
 
   # Bucket policy to allow CloudFront to access S3 bucket (OAC)
-  SecretDomainNetBucketPolicy:
+  SDNBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref SecretDomainNetBucket
+      Bucket: !Ref SDNBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -257,59 +257,46 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::secret-domain-net-frontend-${AWS::AccountId}-${AWS::Region}/*
+            Resource: !Sub arn:aws:s3:::sdn-frontend-${AWS::AccountId}-${AWS::Region}/*
             Condition:
               StringEquals:
                 AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
 
-  SecretDomainNetOAC:
+  SDNOAC:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: OAC-SecretDomainNet
+        Name: OAC-SDN
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
 
 Outputs:
   S3BucketName:
-    Value: !Ref SecretDomainNetBucket
+    Value: !Ref SDNBucket
     Description: S3 bucket for frontend
 
   EC2InstanceId:
-    Value: !Ref SecretDomainNetEC2Instance
+    Value: !Ref SDNEC2Instance
     Description: EC2 instance for backend
 
   EC2ElasticIP:
-    Value: !Ref SecretDomainNetEC2EIP
+    Value: !Ref SDNEC2EIP
     Description: Elastic IP for EC2 instance
 
   ECRRepositoryName:
-    Value: !Ref SecretDomainNetECR
+    Value: !Ref SDNECR
     Description: ECR repository for backend Docker images
 
   CloudFrontDistributionId:
-    Value: !Ref SecretDomainNetCloudFront
+    Value: !Ref SDNCloudFront
     Description: CloudFront distribution for frontend
 
   RDSInstanceEndpoint:
-    Value: !GetAtt SecretDomainNetRDS.Endpoint.Address
+    Value: !GetAtt SDNRDS.Endpoint.Address
     Description: RDS PostgreSQL endpoint
-# Example GitHub Actions deploy step (not part of CloudFormation template)
-# - name: Deploy CloudFormation stack
-#   run: |
-#     aws cloudformation deploy \
-#       --template-file infrastructure.yml \
-#       --stack-name secret-domain-net-stack \
-#       --capabilities CAPABILITY_NAMED_IAM \
-#       --region eu-north-1
-#   env:
-#     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#     AWS_REGION: ${{ secrets.AWS_REGION }}
-
 # How to delete the stack if needed
-# aws s3 rm s3://secret-domain-net-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
-# aws ecr batch-delete-image --repository-name secret-domain-net-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name secret-domain-net-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
-# aws rds delete-db-instance --db-instance-identifier secret-domain-net-postgres-876528174456-eu-north-1 --region eu-north-1 --skip-final-snapshot
-# aws cloudformation delete-stack --stack-name secret-domain-net-stack --region eu-north-1
+# aws s3 rm s3://sdn-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
+# aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
+# aws rds delete-db-instance --db-instance-identifier sdn-postgres-876528174456-eu-north-1 --region eu-north-1 --skip-final-snapshot
+# aws cloudformation delete-stack --stack-name sdn-stack --region eu-north-1

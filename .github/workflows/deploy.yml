@@ -18,11 +18,11 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Delete failed CloudFormation stack (if in ROLLBACK state)
         run: |
-          STATUS=$(aws cloudformation describe-stacks --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }} --query "Stacks[0].StackStatus" --output text || echo "NOT_FOUND")
+          STATUS=$(aws cloudformation describe-stacks --stack-name sdn-stack --region ${{ secrets.AWS_REGION }} --query "Stacks[0].StackStatus" --output text || echo "NOT_FOUND")
           if [[ "$STATUS" == "ROLLBACK_IN_PROGRESS" || "$STATUS" == "ROLLBACK_COMPLETE" ]]; then
-            echo "Deleting failed stack secret-domain-net-stack..."
-            aws cloudformation delete-stack --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }}
-            aws cloudformation wait stack-delete-complete --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }}
+            echo "Deleting failed stack sdn-stack..."
+            aws cloudformation delete-stack --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
+            aws cloudformation wait stack-delete-complete --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
           else
             echo "No failed stack to delete. Current status: $STATUS"
           fi
@@ -30,14 +30,14 @@ jobs:
         run: |
           aws cloudformation deploy \
             --template-file infrastructure.yml \
-            --stack-name secret-domain-net-stack \
+            --stack-name sdn-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}
       - name: Show CloudFormation stack events
         if: failure()
         run: |
-          echo "Showing stack events for secret-domain-net-stack..."
-          aws cloudformation describe-stack-events --stack-name secret-domain-net-stack --region ${{ secrets.AWS_REGION }}
+          echo "Showing stack events for sdn-stack..."
+          aws cloudformation describe-stack-events --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
 
   build-backend:
     runs-on: ubuntu-latest
@@ -59,18 +59,18 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.ECR_REGISTRY }}/secret-domain-net-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest ./backend
+          docker build -t ${{ secrets.ECR_REGISTRY }}/sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest ./backend
 
       - name: Remove all ECR images
         run: |
           IMAGE_IDS=$(aws ecr list-images \
-            --repository-name secret-domain-net-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
+            --repository-name sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
             --region ${{ secrets.AWS_REGION }} \
             --query 'imageIds[*]' \
             --output json)
           if [ "$IMAGE_IDS" != "[]" ]; then
             aws ecr batch-delete-image \
-              --repository-name secret-domain-net-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
+              --repository-name sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
               --region ${{ secrets.AWS_REGION }} \
               --image-ids "$IMAGE_IDS"
           else
@@ -79,7 +79,7 @@ jobs:
 
       - name: Push Docker image to ECR
         run: |
-          docker push ${{ secrets.ECR_REGISTRY }}/secret-domain-net-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest
+          docker push ${{ secrets.ECR_REGISTRY }}/sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest
 
   deploy-backend:
     runs-on: ubuntu-latest
@@ -128,7 +128,7 @@ jobs:
 
             # Set up environment variables
             echo "${{ secrets.BACKEND_ENV }}" > .env
-            echo "BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/secret-domain-net-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
+            echo "BACKEND_IMAGE=${{ secrets.ECR_REGISTRY }}/sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
 
             # Clean up unused Docker resources
             sudo docker system prune -af
@@ -170,12 +170,12 @@ jobs:
 
       - name: Deploy to S3
         run: |
-          aws s3 sync ./frontend/dist s3://secret-domain-net-frontend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --delete
+          aws s3 sync ./frontend/dist s3://sdn-frontend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --delete
 
       - name: Log S3 bucket Website endpoint URL
         run: |
           echo "( CloudFront URL with domain name ) S3 Website endpoint URL: https://secret-domain.net/"
-          aws s3 ls s3://secret-domain-net-frontend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}
+          aws s3 ls s3://sdn-frontend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}
 
   invalidate-cloudfront:
     runs-on: ubuntu-latest
@@ -192,7 +192,7 @@ jobs:
         id: get_cf_id
         run: |
           CF_ID=$(aws cloudformation describe-stacks \
-            --stack-name secret-domain-net-stack \
+            --stack-name sdn-stack \
             --region ${{ secrets.AWS_REGION }} \
             --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" \
             --output text)
