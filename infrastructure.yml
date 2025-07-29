@@ -274,12 +274,12 @@ Resources:
         Name: StaticAssetsCachePolicy
         Comment: Cache static assets for 1 year
         CustomHeadersConfig:
-          Items: []
+          Items:
+            - Header: Cache-Control
+              Value: public, max-age=31536000, immutable
+              Override: true
         SecurityHeadersConfig: {}
         ServerTimingHeadersConfig: {}
-        CacheControlHeadersConfig:
-          Override: true
-          CacheControl: public, max-age=31536000, immutable
 
 Outputs:
   S3BucketName:
