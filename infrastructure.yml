@@ -150,6 +150,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Comment: !Sub secret-domain-net-cf-${AWS::AccountId}-${AWS::Region}
         Enabled: true
         DefaultRootObject: index.html
         Origins:
@@ -203,7 +204,6 @@ Resources:
             ResponsePagePath: /index.html
             ResponseCode: 200
             ErrorCachingMinTTL: 0
-        Comment: !Sub secret-domain-net-cf-${AWS::AccountId}-${AWS::Region}
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SecretDomainNetCertificate:
