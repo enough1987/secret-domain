@@ -81,6 +81,7 @@ Resources:
   SecretDomainNetRDS:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       DBInstanceIdentifier: !Sub secret-domain-net-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
@@ -96,7 +97,6 @@ Resources:
       StorageType: gp2
       MultiAZ: false
       DBSubnetGroupName: !Ref SecretDomainNetRDSSubnetGroup
-      SkipFinalSnapshot: true
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SecretDomainNetSecurityGroup:
