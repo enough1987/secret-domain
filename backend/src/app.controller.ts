@@ -8,17 +8,19 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { AppService } from './services/app.service';
 import { Todo, Photo } from '../generated/prisma';
 import { PrismaService } from './services/prisma.service';
 import { RedisService } from './services/redis.service';
+import { TodoService } from './services/todo.service';
+import { PhotoService } from './services/photo.service';
 
 @Controller()
 export class AppController {
   constructor(
-    private readonly appService: AppService,
-    private prisma: PrismaService,
-    private redis: RedisService,
+    private readonly todoService: TodoService,
+    private readonly photoService: PhotoService,
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
   ) {}
 
   @Get('/')
@@ -35,14 +37,14 @@ export class AppController {
 
   @Get('todos')
   async getTodos(@Query('limit') limit?: string) {
-    return this.appService.getTodos(limit);
+    return this.todoService.getTodos(limit);
   }
 
   @Post('todos')
   async addTodo(
     @Body() todo: Omit<Todo, 'id' | 'created'>,
   ): Promise<Todo | { error: string; details: string }> {
-    return this.appService.addTodo(todo);
+    return this.todoService.addTodo(todo);
   }
 
   @Patch('todos/:id')
@@ -50,22 +52,22 @@ export class AppController {
     @Param('id') id: string,
     @Body() todo: Partial<Todo>,
   ): Promise<Todo | { error: string; details: string }> {
-    return this.appService.updateTodo({ ...todo, id });
+    return this.todoService.updateTodo({ ...todo, id });
   }
 
   @Delete('todos/:id')
   async deleteTodo(
     @Param('id') id: string,
   ): Promise<{ id: string } | { error: string; details: string }> {
-    return this.appService.deleteTodo(id);
+    return this.todoService.deleteTodo(id);
   }
 
   @Get('photos')
   async getPhotos(): Promise<Photo[] | { error: string; details: string }> {
-    const photos = (await this.appService.getPhotos()) as Photo[];
+    const photos = (await this.photoService.getPhotos()) as Photo[];
     if (photos?.length === 0) {
-      await this.appService.seedPhotos();
-      return this.appService.getPhotos();
+      await this.photoService.seedPhotos();
+      return this.photoService.getPhotos();
     }
     return photos;
   }

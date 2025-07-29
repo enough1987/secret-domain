@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { Todo, Photo } from '../../generated/prisma';
+import { Todo } from '../../generated/prisma';
 import { PrismaService } from './prisma.service';
 import { RedisService } from './redis.service';
+
 @Injectable()
-export class AppService {
+export class TodoService {
   constructor(
     private prisma: PrismaService,
     private redisService: RedisService,
   ) {}
 
-  // Helper to generate cache key based on limit
   private getTodosCacheKey(limit?: string): string {
     return limit ? `todos:all:limit=${limit}` : 'todos:all';
   }
 
-  // Get all todos
   async getTodos(
     limit?: string,
   ): Promise<Todo[] | { error: string; details: string }> {
@@ -36,7 +35,6 @@ export class AppService {
     }
   }
 
-  // Invalidate all todos cache keys
   private async invalidateTodosCache() {
     const keys = await this.redisService.getKeys('todos:all*');
     for (const key of keys) {
@@ -44,7 +42,6 @@ export class AppService {
     }
   }
 
-  // Add a new todo
   async addTodo(
     todo: Omit<Todo, 'id' | 'created'>,
   ): Promise<Todo | { error: string; details: string }> {
@@ -55,7 +52,7 @@ export class AppService {
           created: new Date(),
         },
       });
-      await this.invalidateTodosCache(); // Invalidate all relevant cache keys
+      await this.invalidateTodosCache();
       return newTodo;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -63,7 +60,6 @@ export class AppService {
     }
   }
 
-  // Update a todo
   async updateTodo(
     todo: Partial<Todo> & Pick<Todo, 'id'>,
   ): Promise<Todo | { error: string; details: string }> {
@@ -80,7 +76,6 @@ export class AppService {
     }
   }
 
-  // Delete a todo
   async deleteTodo(
     id: string,
   ): Promise<{ id: string } | { error: string; details: string }> {
@@ -91,34 +86,6 @@ export class AppService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       return { error: 'Could not delete todo', details: message };
-    }
-  }
-
-  // Get all photos
-  async getPhotos(): Promise<Photo[] | { error: string; details: string }> {
-    try {
-      return await this.prisma.photo.findMany();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { error: 'Could not read photos', details: message };
-    }
-  }
-
-  // Generate a lot of photos with working URLs
-  async seedPhotos(
-    count: number = 100,
-  ): Promise<{ created: number } | { error: string; details: string }> {
-    try {
-      const photos: Photo[] = Array.from({ length: count }).map((_, i) => ({
-        id: (i + 1).toString(),
-        title: `Photo ${i + 1}`,
-        url: `https://picsum.photos/seed/${i + 1}/600/400.webp`,
-      }));
-      await this.prisma.photo.createMany({ data: photos });
-      return { created: count };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      return { error: 'Could not generate photos', details: message };
     }
   }
 }
