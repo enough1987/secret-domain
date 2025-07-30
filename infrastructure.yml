@@ -64,9 +64,34 @@ Resources:
       SubnetId: !Ref SDNPublicSubnetB
       RouteTableId: !Ref SDNPublicRouteTable
 
+  # RDS PostgreSQL instance for backend database
+  SDNRDS:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    DependsOn:
+      - SDNRDSSubnetGroup
+    Properties:
+      DBInstanceIdentifier: !Sub sdn-postgres-${AWS::AccountId}-${AWS::Region}
+      AllocatedStorage: "20" # GB
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: 17.5 # <-- Use a valid version for your region!
+      MasterUsername: masteruser # <-- Change for production
+      MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
+      VPCSecurityGroups:
+        - !GetAtt SDNRDSSecurityGroup.GroupId
+      PubliclyAccessible: true
+      BackupRetentionPeriod: 7
+      StorageType: gp2
+      MultiAZ: false
+      DBSubnetGroupName: !Ref SDNRDSSubnetGroup
+
   # S3 bucket for static frontend hosting
   SDNBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
@@ -89,29 +114,6 @@ Resources:
     Type: AWS::ECR::Repository
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
-
-  # RDS PostgreSQL instance for backend database
-  SDNRDS:
-    Type: AWS::RDS::DBInstance
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
-    DependsOn:
-      - SDNRDSSubnetGroup
-    Properties:
-      DBInstanceIdentifier: !Sub sdn-postgres-${AWS::AccountId}-${AWS::Region}
-      AllocatedStorage: 20 # GB
-      DBInstanceClass: db.t3.micro
-      Engine: postgres
-      EngineVersion: 16.3 # <-- Use a valid version for your region!
-      MasterUsername: masteruser # <-- Change for production
-      MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
-      VPCSecurityGroups:
-        - !GetAtt SDNRDSSecurityGroup.GroupId
-      PubliclyAccessible: true
-      BackupRetentionPeriod: 7
-      StorageType: gp2
-      MultiAZ: false
-      DBSubnetGroupName: !Ref SDNRDSSubnetGroup
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SDNSecurityGroup:
