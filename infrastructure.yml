@@ -57,22 +57,6 @@ Resources:
         - !Ref SDNSecurityGroup
       SubnetId: !Ref SDNPublicSubnetA # Place EC2 in public subnet A
 
-  # Elastic IP for EC2 instance (for public access)
-  SDNEC2EIP:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-
-  # Associate Elastic IP with EC2 instance
-  SDNEC2EIPAssociation:
-    Type: AWS::EC2::EIPAssociation
-    DependsOn:
-      - SDNEC2Instance
-      - SDNEC2EIP
-    Properties:
-      InstanceId: !Ref SDNEC2Instance
-      EIP: !Ref SDNEC2EIP
-
   # ECR repository for backend Docker images
   SDNECR:
     Type: AWS::ECR::Repository
@@ -289,10 +273,6 @@ Outputs:
     Value: !Ref SDNEC2Instance
     Description: EC2 instance for backend
 
-  EC2ElasticIP:
-    Value: !Ref SDNEC2EIP
-    Description: Elastic IP for EC2 instance
-
   ECRRepositoryName:
     Value: !Ref SDNECR
     Description: ECR repository for backend Docker images
@@ -304,6 +284,10 @@ Outputs:
   RDSInstanceEndpoint:
     Value: !GetAtt SDNRDS.Endpoint.Address
     Description: RDS PostgreSQL endpoint
+
+  EC2PublicIP:
+    Value: !GetAtt SDNEC2Instance.PublicIp
+    Description: Public IP for EC2 instance
 # How to delete the stack if needed
 # aws s3 rm s3://sdn-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
 # aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
