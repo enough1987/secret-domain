@@ -289,3 +289,4 @@ Outputs:
 # aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
 # aws rds delete-db-instance --db-instance-identifier sdn-postgres-876528174456-eu-north-1 --region eu-north-1 --skip-final-snapshot
 # aws cloudformation delete-stack --stack-name sdn-stack --region eu-north-1
+# aws cloudformation wait stack-delete-complete --stack-name sdn-stack --region eu-north-1
