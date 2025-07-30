@@ -67,8 +67,8 @@ Resources:
   # RDS PostgreSQL instance for backend database
   SDNRDS:
     Type: AWS::RDS::DBInstance
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     DependsOn:
       - SDNRDSSubnetGroup
     Properties:
@@ -90,8 +90,8 @@ Resources:
   # S3 bucket for static frontend hosting
   SDNBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       BucketName: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
@@ -101,6 +101,8 @@ Resources:
   # EC2 instance for backend deployment
   SDNEC2Instance:
     Type: AWS::EC2::Instance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0c1b03e30bca3b373
@@ -112,6 +114,8 @@ Resources:
   # ECR repository for backend Docker images
   SDNECR:
     Type: AWS::ECR::Repository
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
 
