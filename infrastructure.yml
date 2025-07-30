@@ -21,21 +21,21 @@ Resources:
       VpcId: !Ref SDNVPC
       InternetGatewayId: !Ref SDNInternetGateway
 
-  # Public subnet A for the application (eu-north-1a)
+  # Public subnet A for the application
   SDNPublicSubnetA:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.49.0/24
-      AvailabilityZone: eu-north-1a
+      AvailabilityZone: !Sub ${AWS::Region}a
 
-  # Public subnet B for the application (eu-north-1b)
+  # Public subnet B for the application
   SDNPublicSubnetB:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.48.0/24
-      AvailabilityZone: eu-north-1b
+      AvailabilityZone: !Sub ${AWS::Region}b
 
   # Public route table for the subnet
   SDNPublicRouteTable:
@@ -203,7 +203,7 @@ Resources:
         DefaultRootObject: index.html
         Origins:
           # S3 origin for static frontend
-          - DomainName: !Sub "${SDNBucket}.s3.eu-north-1.amazonaws.com"
+          - DomainName: !Sub "${SDNBucket}.s3.${AWS::Region}.amazonaws.com"
             Id: S3Origin
             S3OriginConfig: {}
             OriginAccessControlId: !Ref SDNOAC
@@ -317,8 +317,8 @@ Outputs:
     Value: !Ref SDNRDSSecurityGroup
     Description: Security Group ID for RDS
 # How to delete the stack if needed
-# aws s3 rm s3://sdn-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
-# aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
-# aws rds delete-db-instance --db-instance-identifier sdn-postgres-876528174456-eu-north-1 --region eu-north-1 --skip-final-snapshot
-# aws cloudformation delete-stack --stack-name sdn-stack --region eu-north-1
-# aws cloudformation wait stack-delete-complete --stack-name sdn-stack --region eu-north-1
+# aws s3 rm s3://sdn-frontend-876528174456-eu-central-1 --recursive --region eu-central-1
+# aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-central-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-central-1 --query 'imageIds[*]' --output json) --region eu-central-1
+# aws rds delete-db-instance --db-instance-identifier sdn-postgres-876528174456-eu-central-1 --region eu-central-1 --skip-final-snapshot
+# aws cloudformation delete-stack --stack-name sdn-stack --region eu-central-1
+# aws cloudformation wait stack-delete-complete --stack-name sdn-stack --region eu-central-1
