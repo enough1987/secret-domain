@@ -66,6 +66,9 @@ Resources:
   # Associate Elastic IP with EC2 instance
   SDNEC2EIPAssociation:
     Type: AWS::EC2::EIPAssociation
+    DependsOn:
+      - SDNEC2Instance
+      - SDNEC2EIP
     Properties:
       InstanceId: !Ref SDNEC2Instance
       EIP: !Ref SDNEC2EIP
@@ -79,6 +82,8 @@ Resources:
   # RDS PostgreSQL instance for backend database
   SDNRDS:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     DependsOn:
       - SDNVPCGatewayAttachment
       - SDNPublicRoute
@@ -145,6 +150,10 @@ Resources:
   # CloudFront distribution for CDN and custom domain
   SDNCloudFront:
     Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - SDNBucket
+      - SDNEC2Instance
+      - SDNOAC
     Properties:
       DistributionConfig:
         Enabled: true
