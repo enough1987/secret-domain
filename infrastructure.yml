@@ -76,7 +76,7 @@ Resources:
       AllocatedStorage: "20" # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
-      EngineVersion: 17.5 # <-- Use a valid version for your region!
+      EngineVersion: "16.3" # <-- Use a valid version for your region!
       MasterUsername: masteruser # <-- Change for production
       MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
       VPCSecurityGroups:
@@ -142,7 +142,7 @@ Resources:
   SDNRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow EC2 access to RDS
+      GroupDescription: Allow EC2 and public access to RDS
       VpcId: !Ref SDNVPC
       SecurityGroupIngress:
         # Allow EC2 access
@@ -150,11 +150,11 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !GetAtt SDNSecurityGroup.GroupId
-        # Allow access from your local computer
+        # Allow access from anywhere (dev/testing only!)
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
+          CidrIp: 0.0.0.0/0 # <-- Only for dev/testing! Use your IP for production.
 
   # RDS subnet group for the database
   SDNRDSSubnetGroup:
