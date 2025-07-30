@@ -37,6 +37,33 @@ Resources:
       CidrBlock: 172.31.48.0/24
       AvailabilityZone: eu-north-1b
 
+  # Public route table for the subnet
+  SDNPublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref SDNVPC
+
+  # Route to allow internet access from the subnet
+  SDNPublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref SDNPublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref SDNInternetGateway
+
+  # Associate both public subnets with the public route table
+  SDNSubnetRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SDNPublicSubnetA
+      RouteTableId: !Ref SDNPublicRouteTable
+
+  SDNSubnetRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SDNPublicSubnetB
+      RouteTableId: !Ref SDNPublicRouteTable
+
   # S3 bucket for static frontend hosting
   SDNBucket:
     Type: AWS::S3::Bucket
@@ -69,17 +96,13 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     DependsOn:
-      - SDNVPCGatewayAttachment
-      - SDNPublicRoute
-      - SDNSubnetRouteTableAssociationA
-      - SDNSubnetRouteTableAssociationB
       - SDNRDSSubnetGroup
     Properties:
       DBInstanceIdentifier: !Sub sdn-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: 20 # GB
       DBInstanceClass: db.t3.micro
       Engine: postgres
-      EngineVersion: 17.5 # <-- Use the exact version from the AWS Console
+      EngineVersion: 16.3 # <-- Use a valid version for your region!
       MasterUsername: masteruser # <-- Change for production
       MasterUserPassword: masterpassword # <-- Use Secrets Manager for production!
       VPCSecurityGroups:
@@ -130,6 +153,42 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 130.185.237.31/32 # <-- Replace with your actual public IP
+
+  # RDS subnet group for the database
+  SDNRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Public subnet group for RDS
+      SubnetIds:
+        - !Ref SDNPublicSubnetA
+        - !Ref SDNPublicSubnetB
+
+  # Bucket policy to allow CloudFront to access S3 bucket (OAC)
+  SDNBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SDNBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub arn:aws:s3:::sdn-frontend-${AWS::AccountId}-${AWS::Region}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
+
+  SDNOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: OAC-SDN
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
   # CloudFront distribution for CDN and custom domain
   SDNCloudFront:
@@ -201,69 +260,6 @@ Resources:
       DomainName: secret-domain.net
       ValidationMethod: DNS
 
-  # Public route table for the subnet
-  SDNPublicRouteTable:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref SDNVPC
-
-  # Route to allow internet access from the subnet
-  SDNPublicRoute:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref SDNPublicRouteTable
-      DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref SDNInternetGateway
-
-  # Associate both public subnets with the public route table
-  SDNSubnetRouteTableAssociationA:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SDNPublicSubnetA
-      RouteTableId: !Ref SDNPublicRouteTable
-
-  SDNSubnetRouteTableAssociationB:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref SDNPublicSubnetB
-      RouteTableId: !Ref SDNPublicRouteTable
-
-  # RDS subnet group for the database
-  SDNRDSSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: Public subnet group for RDS
-      SubnetIds:
-        - !Ref SDNPublicSubnetA
-        - !Ref SDNPublicSubnetB
-
-  # Bucket policy to allow CloudFront to access S3 bucket (OAC)
-  SDNBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref SDNBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: AllowCloudFrontServicePrincipalReadOnly
-            Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::sdn-frontend-${AWS::AccountId}-${AWS::Region}/*
-            Condition:
-              StringEquals:
-                AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
-
-  SDNOAC:
-    Type: AWS::CloudFront::OriginAccessControl
-    Properties:
-      OriginAccessControlConfig:
-        Name: OAC-SDN
-        OriginAccessControlOriginType: s3
-        SigningBehavior: always
-        SigningProtocol: sigv4
-
 Outputs:
   S3BucketName:
     Value: !Ref SDNBucket
@@ -281,9 +277,45 @@ Outputs:
     Value: !Ref SDNCloudFront
     Description: CloudFront distribution for frontend
 
+  CloudFrontDomainName:
+    Value: !GetAtt SDNCloudFront.DomainName
+    Description: CloudFront distribution domain name
+
   RDSInstanceEndpoint:
     Value: !GetAtt SDNRDS.Endpoint.Address
     Description: RDS PostgreSQL endpoint
+
+  EC2PublicIP:
+    Value: !GetAtt SDNEC2Instance.PublicIp
+    Description: Public IP address of EC2 instance
+
+  EC2PublicDNS:
+    Value: !GetAtt SDNEC2Instance.PublicDnsName
+    Description: Public DNS name of EC2 instance
+
+  S3WebsiteURL:
+    Value: !GetAtt SDNBucket.WebsiteURL
+    Description: S3 static website endpoint
+
+  VPCId:
+    Value: !Ref SDNVPC
+    Description: VPC ID
+
+  PublicSubnetAId:
+    Value: !Ref SDNPublicSubnetA
+    Description: Public Subnet A ID
+
+  PublicSubnetBId:
+    Value: !Ref SDNPublicSubnetB
+    Description: Public Subnet B ID
+
+  EC2SecurityGroupId:
+    Value: !Ref SDNSecurityGroup
+    Description: Security Group ID for EC2
+
+  RDSSecurityGroupId:
+    Value: !Ref SDNRDSSecurityGroup
+    Description: Security Group ID for RDS
 # How to delete the stack if needed
 # aws s3 rm s3://sdn-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
 # aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
