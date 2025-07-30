@@ -33,12 +33,20 @@ jobs:
             --stack-name sdn-stack \
             --capabilities CAPABILITY_NAMED_IAM \
             --region ${{ secrets.AWS_REGION }}
-      - name: Show CloudFormation stack events
+      - name: Show CloudFormation stack failures
         if: failure()
         run: |
-          echo "Showing stack events for sdn-stack..."
-          aws cloudformation describe-stack-events --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
-
+          echo "Showing failed stack events for sdn-stack..."
+          aws cloudformation describe-stack-events --stack-name sdn-stack --region ${{ secrets.AWS_REGION }} \
+            --query "StackEvents[?ResourceStatus=='CREATE_FAILED'].[LogicalResourceId,ResourceStatusReason]" \
+            --output table
+      - name: Delete resources on failure
+        if: failure()
+        run: |
+          echo "Deleting resources due to failure..."
+          aws s3 rm s3://sdn-frontend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --recursive --region ${{ secrets.AWS_REGION }}
+          aws ecr batch-delete-image --repository-name sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --image-ids $(aws ecr list-images --repository-name sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --query 'imageIds[*]' --output json) --region ${{ secrets.AWS_REGION }}
+          aws rds delete-db-instance --db-instance-identifier sdn-postgres-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} --region ${{ secrets.AWS_REGION }} --skip-final-snapshot
   build-backend:
     runs-on: ubuntu-latest
     needs: [deploy-infrastructure]

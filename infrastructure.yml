@@ -284,10 +284,6 @@ Outputs:
   RDSInstanceEndpoint:
     Value: !GetAtt SDNRDS.Endpoint.Address
     Description: RDS PostgreSQL endpoint
-
-  EC2PublicIP:
-    Value: !GetAtt SDNEC2Instance.PublicIp
-    Description: Public IP for EC2 instance
 # How to delete the stack if needed
 # aws s3 rm s3://sdn-frontend-876528174456-eu-north-1 --recursive --region eu-north-1
 # aws ecr batch-delete-image --repository-name sdn-backend-876528174456-eu-north-1 --image-ids $(aws ecr list-images --repository-name sdn-backend-876528174456-eu-north-1 --query 'imageIds[*]' --output json) --region eu-north-1
