@@ -77,8 +77,8 @@ Resources:
   SDNEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.micro
-      ImageId: ami-09278528675a8d54e
+      InstanceType: t2.micro
+      ImageId: ami-0c1b03e30bca3b373
       KeyName: ec2Key
       SecurityGroupIds:
         - !Ref SDNSecurityGroup
