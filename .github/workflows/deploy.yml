@@ -62,6 +62,11 @@ jobs:
         run: |
           docker build -t ${{ secrets.ECR_REGISTRY }}/sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest ./backend
 
+      - name: Debug ECR repository name
+        run: |
+          REPO_NAME=sdn-backend-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}
+          echo "Repository name: $REPO_NAME"
+
       - name: Remove all ECR images
         run: |
           IMAGE_IDS=$(aws ecr list-images \

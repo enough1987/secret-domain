@@ -138,7 +138,6 @@ Resources:
   SDNRDS:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
     DependsOn:
       - SDNRDSSubnetGroup
       - SDNPublicSubnetA
@@ -168,7 +167,6 @@ Resources:
   SDNBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
     Properties:
       BucketName: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
@@ -179,7 +177,6 @@ Resources:
   SDNEC2Instance:
     Type: AWS::EC2::Instance
     DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
     DependsOn:
       - SDNPublicSubnetA
       - SDNSecurityGroup
@@ -198,7 +195,6 @@ Resources:
   SDNECR:
     Type: AWS::ECR::Repository
     DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
 
