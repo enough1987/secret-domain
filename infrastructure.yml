@@ -17,6 +17,9 @@ Resources:
   # Attach Internet Gateway to VPC
   SDNVPCGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - SDNVPC
+      - SDNInternetGateway
     Properties:
       VpcId: !Ref SDNVPC
       InternetGatewayId: !Ref SDNInternetGateway
@@ -24,6 +27,7 @@ Resources:
   # Public subnet A for the application
   SDNPublicSubnetA:
     Type: AWS::EC2::Subnet
+    DependsOn: SDNVPC
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.49.0/24
@@ -32,6 +36,7 @@ Resources:
   # Public subnet B for the application
   SDNPublicSubnetB:
     Type: AWS::EC2::Subnet
+    DependsOn: SDNVPC
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.48.0/24
@@ -40,12 +45,17 @@ Resources:
   # Public route table for the subnet
   SDNPublicRouteTable:
     Type: AWS::EC2::RouteTable
+    DependsOn: SDNVPC
     Properties:
       VpcId: !Ref SDNVPC
 
   # Route to allow internet access from the subnet
   SDNPublicRoute:
     Type: AWS::EC2::Route
+    DependsOn:
+      - SDNPublicRouteTable
+      - SDNInternetGateway
+      - SDNVPCGatewayAttachment
     Properties:
       RouteTableId: !Ref SDNPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -54,15 +64,75 @@ Resources:
   # Associate both public subnets with the public route table
   SDNSubnetRouteTableAssociationA:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - SDNPublicSubnetA
+      - SDNPublicRouteTable
+      - SDNPublicRoute
     Properties:
       SubnetId: !Ref SDNPublicSubnetA
       RouteTableId: !Ref SDNPublicRouteTable
 
   SDNSubnetRouteTableAssociationB:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    DependsOn:
+      - SDNPublicSubnetB
+      - SDNPublicRouteTable
+      - SDNPublicRoute
     Properties:
       SubnetId: !Ref SDNPublicSubnetB
       RouteTableId: !Ref SDNPublicRouteTable
+
+  # RDS subnet group for the database
+  SDNRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    DependsOn:
+      - SDNPublicSubnetA
+      - SDNPublicSubnetB
+    Properties:
+      DBSubnetGroupDescription: Public subnet group for RDS
+      SubnetIds:
+        - !Ref SDNPublicSubnetA
+        - !Ref SDNPublicSubnetB
+
+  # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
+  SDNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: SDNVPC
+    Properties:
+      GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
+      VpcId: !Ref SDNVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # Security group for RDS instance (allow EC2 access and your IP)
+  SDNRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - SDNVPC
+      - SDNSecurityGroup
+    Properties:
+      GroupDescription: Allow EC2 and public access to RDS
+      VpcId: !Ref SDNVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !GetAtt SDNSecurityGroup.GroupId
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
 
   # RDS PostgreSQL instance for backend database
   SDNRDS:
@@ -71,6 +141,13 @@ Resources:
     UpdateReplacePolicy: Delete
     DependsOn:
       - SDNRDSSubnetGroup
+      - SDNPublicSubnetA
+      - SDNPublicSubnetB
+      - SDNPublicRouteTable
+      - SDNPublicRoute
+      - SDNSubnetRouteTableAssociationA
+      - SDNSubnetRouteTableAssociationB
+      - SDNRDSSecurityGroup
     Properties:
       DBInstanceIdentifier: !Sub sdn-postgres-${AWS::AccountId}-${AWS::Region}
       AllocatedStorage: "20" # GB
@@ -103,6 +180,9 @@ Resources:
     Type: AWS::EC2::Instance
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
+    DependsOn:
+      - SDNPublicSubnetA
+      - SDNSecurityGroup
     Properties:
       InstanceType: t2.micro
       ImageId: ami-0c1b03e30bca3b373
@@ -145,6 +225,7 @@ Resources:
   # Security group for RDS instance (allow EC2 access and your IP)
   SDNRDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
+    DependsOn: SDNVPC
     Properties:
       GroupDescription: Allow EC2 and public access to RDS
       VpcId: !Ref SDNVPC
@@ -163,6 +244,9 @@ Resources:
   # RDS subnet group for the database
   SDNRDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
+    DependsOn:
+      - SDNPublicSubnetA
+      - SDNPublicSubnetB
     Properties:
       DBSubnetGroupDescription: Public subnet group for RDS
       SubnetIds:
@@ -172,6 +256,9 @@ Resources:
   # Bucket policy to allow CloudFront to access S3 bucket (OAC)
   SDNBucketPolicy:
     Type: AWS::S3::BucketPolicy
+    DependsOn:
+      - SDNBucket
+      - SDNCloudFront
     Properties:
       Bucket: !Ref SDNBucket
       PolicyDocument:
@@ -318,6 +405,10 @@ Outputs:
   EC2SecurityGroupId:
     Value: !Ref SDNSecurityGroup
     Description: Security Group ID for EC2
+
+  RDSSubnetGroupSubnets:
+    Value: !Join [",", [!Ref SDNPublicSubnetA, !Ref SDNPublicSubnetB]]
+    Description: Subnet IDs used for RDS subnet group
 
   RDSSecurityGroupId:
     Value: !Ref SDNRDSSecurityGroup
