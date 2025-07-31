@@ -190,6 +190,7 @@ Resources:
       SecurityGroupIds:
         - !Ref SDNSecurityGroup
       SubnetId: !Ref SDNPublicSubnetA # Place EC2 in public subnet A
+      AssociatePublicIpAddress: true # <-- Add this line
 
   # ECR repository for backend Docker images
   SDNECR:
