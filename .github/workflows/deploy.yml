@@ -98,7 +98,7 @@ jobs:
         id: get_ec2_ip
         run: |
           PUBLIC_IP=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=YOUR_INSTANCE_NAME" "Name=instance-state-name,Values=running" \
+            --filters "Name=tag:Name,Values=sdn-ec2-instance" "Name=instance-state-name,Values=running" \
             --region ${{ secrets.AWS_REGION }} \
             --query "Reservations[0].Instances[0].PublicIpAddress" \
             --output text)

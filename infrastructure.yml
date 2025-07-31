@@ -9,10 +9,17 @@ Resources:
       CidrBlock: 172.31.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: sdn-vpc
 
   # Internet Gateway for VPC
   SDNInternetGateway:
     Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: sdn-internet-gateway
 
   # Attach Internet Gateway to VPC
   SDNVPCGatewayAttachment:
@@ -32,6 +39,9 @@ Resources:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.49.0/24
       AvailabilityZone: eu-central-1a
+      Tags:
+        - Key: Name
+          Value: sdn-public-subnet-a
 
   # Public subnet B for the application
   SDNPublicSubnetB:
@@ -41,6 +51,9 @@ Resources:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.48.0/24
       AvailabilityZone: eu-central-1b
+      Tags:
+        - Key: Name
+          Value: sdn-public-subnet-b
 
   # Public route table for the subnet
   SDNPublicRouteTable:
@@ -48,6 +61,9 @@ Resources:
     DependsOn: SDNVPC
     Properties:
       VpcId: !Ref SDNVPC
+      Tags:
+        - Key: Name
+          Value: sdn-public-route-table
 
   # Route to allow internet access from the subnet
   SDNPublicRoute:
@@ -93,6 +109,9 @@ Resources:
       SubnetIds:
         - !Ref SDNPublicSubnetA
         - !Ref SDNPublicSubnetB
+      Tags:
+        - Key: Name
+          Value: sdn-rds-subnet-group
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SDNSecurityGroup:
@@ -114,6 +133,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: sdn-ec2-sg
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SDNRDSSecurityGroup:
@@ -133,6 +155,9 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: sdn-rds-sg
 
   # RDS PostgreSQL instance for backend database
   SDNRDS:
@@ -162,6 +187,9 @@ Resources:
       StorageType: gp2
       MultiAZ: false
       DBSubnetGroupName: !Ref SDNRDSSubnetGroup
+      Tags:
+        - Key: Name
+          Value: sdn-postgres
 
   # S3 bucket for static frontend hosting
   SDNBucket:
@@ -190,6 +218,9 @@ Resources:
           SubnetId: !Ref SDNPublicSubnetA
           GroupSet:
             - !Ref SDNSecurityGroup
+      Tags:
+        - Key: Name
+          Value: sdn-ec2-instance
 
   # ECR repository for backend Docker images
   SDNECR:
@@ -197,6 +228,9 @@ Resources:
     DeletionPolicy: Delete
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
+      Tags:
+        - Key: Name
+          Value: sdn-backend-ecr
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SDNSecurityGroup:
@@ -220,6 +254,9 @@ Resources:
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: sdn-ec2-sg
 
   # Security group for RDS instance (allow EC2 access and your IP)
   SDNRDSSecurityGroup:
@@ -239,6 +276,9 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           CidrIp: 0.0.0.0/0 # <-- Only for dev/testing! Use your IP for production.
+      Tags:
+        - Key: Name
+          Value: sdn-rds-sg
 
   # RDS subnet group for the database
   SDNRDSSubnetGroup:
@@ -251,6 +291,9 @@ Resources:
       SubnetIds:
         - !Ref SDNPublicSubnetA
         - !Ref SDNPublicSubnetB
+      Tags:
+        - Key: Name
+          Value: sdn-rds-subnet-group
 
   # Bucket policy to allow CloudFront to access S3 bucket (OAC)
   SDNBucketPolicy:
