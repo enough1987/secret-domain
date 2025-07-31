@@ -27,7 +27,7 @@ Resources:
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.49.0/24
-      AvailabilityZone: !Sub ${AWS::Region}a
+      AvailabilityZone: eu-central-1a
 
   # Public subnet B for the application
   SDNPublicSubnetB:
@@ -35,7 +35,7 @@ Resources:
     Properties:
       VpcId: !Ref SDNVPC
       CidrBlock: 172.31.48.0/24
-      AvailabilityZone: !Sub ${AWS::Region}b
+      AvailabilityZone: eu-central-1b
 
   # Public route table for the subnet
   SDNPublicRouteTable:
