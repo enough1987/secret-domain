@@ -187,10 +187,12 @@ Resources:
       InstanceType: t2.micro
       ImageId: ami-0c1b03e30bca3b373
       KeyName: ec2Key
-      SecurityGroupIds:
-        - !Ref SDNSecurityGroup
-      SubnetId: !Ref SDNPublicSubnetA # Place EC2 in public subnet A
-      AssociatePublicIpAddress: true # <-- Add this line
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref SDNPublicSubnetA
+          GroupSet:
+            - !Ref SDNSecurityGroup
 
   # ECR repository for backend Docker images
   SDNECR:
