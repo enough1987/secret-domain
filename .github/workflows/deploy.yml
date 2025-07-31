@@ -16,10 +16,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      - name: Delete failed CloudFormation stack (if in ROLLBACK state)
+      - name: Delete failed CloudFormation stack (if in ROLLBACK or CREATE_FAILED state)
         run: |
           STATUS=$(aws cloudformation describe-stacks --stack-name sdn-stack --region ${{ secrets.AWS_REGION }} --query "Stacks[0].StackStatus" --output text || echo "NOT_FOUND")
-          if [[ "$STATUS" == "ROLLBACK_IN_PROGRESS" || "$STATUS" == "ROLLBACK_COMPLETE" ]]; then
+          if [[ "$STATUS" == "ROLLBACK_IN_PROGRESS" || "$STATUS" == "ROLLBACK_COMPLETE" || "$STATUS" == "CREATE_FAILED" ]]; then
             echo "Deleting failed stack sdn-stack..."
             aws cloudformation delete-stack --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
             aws cloudformation wait stack-delete-complete --stack-name sdn-stack --region ${{ secrets.AWS_REGION }}
