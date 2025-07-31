@@ -67,8 +67,8 @@ Resources:
   # RDS PostgreSQL instance for backend database
   SDNRDS:
     Type: AWS::RDS::DBInstance
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     DependsOn:
       - SDNRDSSubnetGroup
     Properties:
@@ -90,8 +90,8 @@ Resources:
   # S3 bucket for static frontend hosting
   SDNBucket:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
       BucketName: !Sub sdn-frontend-${AWS::AccountId}-${AWS::Region}
       Tags:
