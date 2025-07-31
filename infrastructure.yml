@@ -199,21 +199,153 @@ Resources:
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
 
-  # Bucket policy for S3 bucket (CloudFront references removed)
+  # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
+  SDNSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTPS for users, HTTP for AWS services, and SSH for admins
+      VpcId: !Ref SDNVPC
+      SecurityGroupIngress:
+        # SSH access (restrict in production!)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        # HTTPS for public users
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        # HTTP for CloudFront (allow from anywhere)
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  # Security group for RDS instance (allow EC2 access and your IP)
+  SDNRDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: SDNVPC
+    Properties:
+      GroupDescription: Allow EC2 and public access to RDS
+      VpcId: !Ref SDNVPC
+      SecurityGroupIngress:
+        # Allow EC2 access
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !GetAtt SDNSecurityGroup.GroupId
+        # Allow access from anywhere (dev/testing only!)
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0 # <-- Only for dev/testing! Use your IP for production.
+
+  # RDS subnet group for the database
+  SDNRDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    DependsOn:
+      - SDNPublicSubnetA
+      - SDNPublicSubnetB
+    Properties:
+      DBSubnetGroupDescription: Public subnet group for RDS
+      SubnetIds:
+        - !Ref SDNPublicSubnetA
+        - !Ref SDNPublicSubnetB
+
+  # Bucket policy to allow CloudFront to access S3 bucket (OAC)
   SDNBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn:
       - SDNBucket
+      - SDNCloudFront
     Properties:
       Bucket: !Ref SDNBucket
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: AllowPublicRead
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
             Effect: Allow
-            Principal: "*"
+            Principal:
+              Service: cloudfront.amazonaws.com
             Action: s3:GetObject
             Resource: !Sub arn:aws:s3:::sdn-frontend-${AWS::AccountId}-${AWS::Region}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
+
+  SDNOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: OAC-SDN
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # CloudFront distribution for CDN and custom domain
+  SDNCloudFront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - SDNRDS
+      - SDNBucket
+      - SDNEC2Instance
+      - SDNOAC
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          # S3 origin for static frontend
+          - DomainName: !Sub "${SDNBucket}.s3.${AWS::Region}.amazonaws.com"
+            Id: S3Origin
+            S3OriginConfig: {}
+            OriginAccessControlId: !Ref SDNOAC
+          # EC2 origin for backend API
+          - DomainName: !GetAtt SDNEC2Instance.PublicDnsName
+            Id: ApiOrigin
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true # <-- Enable compression here
+        CacheBehaviors:
+          # Route /api/* requests to backend API (EC2)
+          - PathPattern: /api/*
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+        ViewerCertificate:
+          AcmCertificateArn: arn:aws:acm:us-east-1:876528174456:certificate/f87820f7-3923-4a46-9b72-d47885df1b17
+          SslSupportMethod: sni-only
+        Aliases:
+          - secret-domain.net
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponsePagePath: /index.html
+            ResponseCode: 200
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 403
+            ResponsePagePath: /index.html
+            ResponseCode: 200
+            ErrorCachingMinTTL: 0
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
@@ -234,6 +366,14 @@ Outputs:
   ECRRepositoryName:
     Value: !Ref SDNECR
     Description: ECR repository for backend Docker images
+
+  CloudFrontDistributionId:
+    Value: !Ref SDNCloudFront
+    Description: CloudFront distribution for frontend
+
+  CloudFrontDomainName:
+    Value: !GetAtt SDNCloudFront.DomainName
+    Description: CloudFront distribution domain name
 
   RDSInstanceEndpoint:
     Value: !GetAtt SDNRDS.Endpoint.Address
