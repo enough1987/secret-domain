@@ -314,7 +314,7 @@ Resources:
             Resource: !Sub arn:aws:s3:::sdn-frontend-${AWS::AccountId}-${AWS::Region}/*
             Condition:
               StringEquals:
-                AWS:SourceArn: arn:aws:cloudfront::876528174456:distribution/E4KCLSTALFBTD
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SDNCloudFront}
 
   SDNOAC:
     Type: AWS::CloudFront::OriginAccessControl
