@@ -16,7 +16,7 @@ export const todoApi = createApi({
             ]
           : [{ type: 'todos', id: `LIST-${limit}` }],
       transformResponse: (response: ITodo[]) =>
-        response.slice().sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()),
+        response?.slice().sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()) || [],
       keepUnusedDataFor: 30,
     }),
     addTodo: builder.mutation<ITodo, Omit<ITodo, 'id' | 'created'>>({

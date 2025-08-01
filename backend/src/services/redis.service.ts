@@ -1,29 +1,46 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { createClient, RedisClientType } from 'redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: RedisClientType;
+  private client: RedisClientType | null = null;
   private expirationTime = 60 * 60 * 24; // Cache for 1 day;
+  private readonly logger = new Logger(RedisService.name);
 
   async onModuleInit() {
-    this.client = createClient({
-      url: process.env.REDIS_URL || 'redis://redis:6379',
-      socket: {
-        reconnectStrategy: (retries) => {
-          if (retries > 2) {
-            // Stop retrying after 2 retries (3 attempts total)
-            return false;
-          }
-          // Retry after 2^retries * 100 ms, max 2s
-          return Math.min(2 ** retries * 100, 2000);
+    try {
+      this.client = createClient({
+        url: process.env.REDIS_URL || 'redis://redis:6379',
+        socket: {
+          reconnectStrategy: (retries) => {
+            if (retries > 2) {
+              return false;
+            }
+            return Math.min(2 ** retries * 100, 2000);
+          },
         },
-      },
-    });
-    this.client.on('error', () => {
-      console.error('Redis Client Error');
-    });
-    await this.client.connect();
+      });
+      this.client.on('error', (err: unknown) => {
+        if (err instanceof Error) {
+          this.logger.warn('Redis error: ' + err.message);
+        } else {
+          this.logger.warn('Redis error: Unknown error');
+        }
+      });
+      await this.client.connect();
+      this.logger.log('Redis connected');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Redis not available, continuing without cache. Error: ${message}`,
+      );
+      this.client = null;
+    }
   }
 
   async onModuleDestroy() {
@@ -34,7 +51,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   getClient(): RedisClientType | null {
     if (!this.client || !this.client.isOpen) {
-      return null; // Return null if client is not initialized or not open
+      return null;
     }
     return this.client;
   }
@@ -42,24 +59,40 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async getKeys(pattern: string): Promise<string[]> {
     const client = this.getClient();
     if (!client) return [];
-    return await client.keys(pattern);
+    try {
+      return await client.keys(pattern);
+    } catch {
+      return [];
+    }
   }
 
   async getCache(cacheKey: string): Promise<string | null> {
     const client = this.getClient();
     if (!client) return null;
-    return await client.get(cacheKey);
+    try {
+      return await client.get(cacheKey);
+    } catch {
+      return null;
+    }
   }
 
   async setCache(cacheKey: string, data: string): Promise<void> {
     const client = this.getClient();
     if (!client) return;
-    await client.set(cacheKey, data, { EX: this.expirationTime });
+    try {
+      await client.set(cacheKey, data, { EX: this.expirationTime });
+    } catch {
+      // ignore
+    }
   }
 
   async delCache(cacheKey: string): Promise<void> {
     const client = this.getClient();
-    if (!client) return Promise.resolve();
-    await client.del(cacheKey);
+    if (!client) return;
+    try {
+      await client.del(cacheKey);
+    } catch {
+      // ignore
+    }
   }
 }

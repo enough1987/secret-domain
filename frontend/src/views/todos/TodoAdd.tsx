@@ -38,7 +38,7 @@ const TodoAdd: React.FC = () => {
           disabled={isLoading}
         >
           {[Priority.LOW, Priority.MEDIUM, Priority.HIGH].map(p => (
-            <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+            <option key={p} value={p}>{p?.charAt(0)?.toUpperCase() + p?.slice(1)}</option>
           ))}
         </select>
         <button
