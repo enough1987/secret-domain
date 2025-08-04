@@ -274,9 +274,9 @@ jobs:
             # Health check
             curl -v http://localhost:4000 || true
 
-  build-frontend:
+  build-and-deploy-frontend-react:
     runs-on: ubuntu-latest
-    needs: [deploy-backend, build-frontend-next]
+    needs: [deploy-infrastructure]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -312,7 +312,8 @@ jobs:
 
   invalidate-cloudfront:
     runs-on: ubuntu-latest
-    needs: [build-frontend]
+    needs:
+      [deploy-backend, deploy-frontend-next, build-and-deploy-frontend-react]
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
