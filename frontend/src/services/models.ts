@@ -46,5 +46,6 @@ export const MenuRoutes = [
   { to: '/todos', title: 'Todos' },
   { to: `/todos/${TodosTypes.NOT_COMLETED}`, title: 'Todos not completed' },
   { to: `/todos/${TodosTypes.COMLETED}`, title: 'Todos completed' },
-  { to: '/photos', title: 'Photos' }
+  { to: '/photos', title: 'Photos' },
+  { to: 'https://secret-domain.net/next', title: 'Next' }
 ]

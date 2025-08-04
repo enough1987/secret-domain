@@ -1,0 +1,14 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-response: #f4f4f4; // Light gray for AI response background
+  --color-main-button: #0070f3; // Blue for AI button background
+  --color-text: #fff; // White text color
+  --color-menu-bg: #93c5fd; // Tailwind's bg-blue-300
+  --color-menu-text: #fff; // Tailwind's text-white
+  --color-menu-hover: #60a5fa; // Tailwind's hover:bg-blue
+}

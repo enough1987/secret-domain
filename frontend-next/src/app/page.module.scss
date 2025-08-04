@@ -1,0 +1,39 @@
+.page {
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  font-family: var(--font-geist-sans);
+  padding-top: 1.5rem;
+}
+
+.main {
+  width: 100%;  
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  grid-row-start: 2;
+}
+
+.footer {
+  grid-row-start: 3;
+  display: flex;
+  gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 2rem;
+    padding-bottom: 5rem;
+  }
+
+  .main {
+    align-items: center;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+  }
+}
+

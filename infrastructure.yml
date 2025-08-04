@@ -222,15 +222,73 @@ Resources:
         - Key: Name
           Value: sdn-ec2-instance
 
+  # EC2 instance for frontend deployment (Next.js)
+  SDNFrontendNextEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0c1b03e30bca3b373 # Use a suitable Node.js AMI
+      KeyName: ec2Key
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref SDNPublicSubnetA
+          GroupSet:
+            - !Ref SDNSecurityGroup
+      Tags:
+        - Key: Name
+          Value: frontend-next-ec2-instance
+
   # ECR repository for backend Docker images
   SDNECR:
     Type: AWS::ECR::Repository
     DeletionPolicy: Delete
     Properties:
       RepositoryName: !Sub sdn-backend-${AWS::AccountId}-${AWS::Region}
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep only the most recent image",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 1
+                },
+                "action": { "type": "expire" }
+              }
+            ]
+          }
       Tags:
         - Key: Name
           Value: sdn-backend-ecr
+
+  SDNFrontendNextECR:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Delete
+    Properties:
+      RepositoryName: !Sub sdn-frontend-next-${AWS::AccountId}-${AWS::Region}
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep only the most recent image",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 1
+                },
+                "action": { "type": "expire" }
+              }
+            ]
+          }
+      Tags:
+        - Key: Name
+          Value: sdn-frontend-next-ecr
 
   # Security group for EC2 instance (allows SSH, HTTPS, HTTP)
   SDNSecurityGroup:
@@ -332,6 +390,7 @@ Resources:
       - SDNRDS
       - SDNBucket
       - SDNEC2Instance
+      - SDNFrontendNextEC2Instance
       - SDNOAC
     Properties:
       DistributionConfig:
@@ -350,6 +409,13 @@ Resources:
               HTTPPort: 80
               HTTPSPort: 443
               OriginProtocolPolicy: http-only
+          # EC2 origin for frontend (Next.js)
+          - DomainName: !GetAtt SDNFrontendNextEC2Instance.PublicDnsName
+            Id: SDNFrontendNextOrigin
+            CustomOriginConfig:
+              HTTPPort: 4000
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -366,6 +432,19 @@ Resources:
             TargetOriginId: ApiOrigin
             ViewerProtocolPolicy: redirect-to-https
             AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+          # Route /next/* requests to frontend (Next.js)
+          - PathPattern: /next/*
+            TargetOriginId: SDNFrontendNextOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS]
             CachedMethods: [GET, HEAD, OPTIONS]
             ForwardedValues:
               QueryString: true

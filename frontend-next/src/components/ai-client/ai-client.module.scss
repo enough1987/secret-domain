@@ -1,0 +1,33 @@
+.aiForm {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.aiInput {
+  padding: 0.5rem;
+  width: 18.75rem; // 300px = 18.75rem
+  margin-right: 0.5rem;
+}
+
+.aiButton {
+  padding: 0.5rem;
+  box-sizing: border-box;
+  margin-top: 0.5rem;
+  background: var(--color-main-button);
+  color: var(--color-text);
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.aiResponse {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--color-response);
+  border-radius: 0.5rem;
+}
+
+.aiResponse::selection  {
+  background: var(--color-menu-hover);
+  color: var(--color-text);
+}

@@ -4,17 +4,30 @@ import { MenuRoutes } from '../../services/models'
 
 const Menu: React.FC = () => (
   <nav className="bg-blue-300 p-4">
-    <ul className="flex space-x-6 text-white font-semibold">
+    <ul>
       {MenuRoutes.map(item => (
-        <NavLink
-          key={item.to}
-          className="hover:underline cursor-pointer"
-          to={item.to}
-        >
-          {item.title}
-        </NavLink>
+        item.to.startsWith('http') ? (
+            <li key={item.to}>
+              <a
+                href={item.to}
+                className="hover:underline cursor-pointer"
+                rel="noopener noreferrer"
+              >
+                {item.title}
+              </a>
+            </li>
+          ) : (
+            <li key={item.to}>
+              <NavLink
+                className="hover:underline cursor-pointer"
+                to={item.to}
+              >
+                {item.title}
+              </NavLink>
+            </li>
+          )
       ))}
-    </ul>
+  </ul>
   </nav>
 )
 

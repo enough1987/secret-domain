@@ -13,6 +13,9 @@ lambdas/*/node_modules
 frontend/node_modules
 frontend/build
 frontend/dist
+next/node_modules
+next/build
+next/dist
 backend/node_modules
 backend/build
 backend/dist
@@ -41,13 +44,18 @@ dist-ssr
 frontend/.env
 frontend/.env.local
 frontend/.env.production
+next/.env
+next/.env.local
+next/.env.production
 backend/.env
 backend/.env.local
 backend/.env.production
 
 package-lock.json
 frontend/package-lock.json
+next/package-lock.json
 backend/package-lock.json
+
 
 info
 info/back.txt

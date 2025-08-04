@@ -157,9 +157,126 @@ jobs:
             # Health check
             curl -v http://localhost:80 || true
 
+  build-frontend-next:
+    runs-on: ubuntu-latest
+    needs: [deploy-infrastructure]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest ./frontend-next
+
+      - name: Remove all ECR images
+        run: |
+          IMAGE_IDS=$(aws ecr list-images \
+            --repository-name sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
+            --region ${{ secrets.AWS_REGION }} \
+            --query 'imageIds[*]' \
+            --output json)
+          if [ "$IMAGE_IDS" != "[]" ]; then
+            aws ecr batch-delete-image \
+              --repository-name sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }} \
+              --region ${{ secrets.AWS_REGION }} \
+              --image-ids "$IMAGE_IDS"
+          else
+            echo "No images to delete."
+          fi
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest
+
+  deploy-frontend-next:
+    runs-on: ubuntu-latest
+    needs: [build-frontend-next]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Write SSH key to file
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > /tmp/ec2_key.pem
+          chmod 600 /tmp/ec2_key.pem
+
+      - name: Get EC2 Public IP
+        id: get_ec2_ip
+        run: |
+          PUBLIC_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=frontend-next-ec2-instance" "Name=instance-state-name,Values=running" \
+            --region ${{ secrets.AWS_REGION }} \
+            --query "Reservations[0].Instances[0].PublicIpAddress" \
+            --output text)
+          echo "EC2_HOST=$PUBLIC_IP" >> $GITHUB_ENV
+
+      - name: Copy docker-compose.yml and nginx.conf to EC2
+        run: |
+          scp -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no frontend-next/docker-compose.yml frontend-next/nginx.conf ec2-user@${{ env.EC2_HOST }}:~/
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 30m
+          envs: AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,FRONTEND_NEXT_ENV
+          script: |
+            export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+            export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+            export AWS_REGION="${{ secrets.AWS_REGION }}"
+            set -exuo pipefail
+            sudo yum install -y docker
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker ec2-user
+
+            # Install docker-compose
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+
+            # Login to ECR
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+            cd ~/
+
+            # Set up environment variables
+            echo "${{ secrets.FRONTEND_NEXT_ENV }}" > .env
+            echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
+
+            # Clean up unused Docker resources
+            sudo docker system prune -af
+
+            # Pull latest image and start containers
+            sudo docker-compose down || true
+            sudo docker-compose pull
+            sudo docker-compose up -d
+
+            # Health check
+            curl -v http://localhost:4000 || true
+
   build-frontend:
     runs-on: ubuntu-latest
-    needs: [deploy-backend]
+    needs: [deploy-backend, build-frontend-next]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
