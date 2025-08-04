@@ -27,5 +27,5 @@ ENV NODE_OPTIONS=--max-old-space-size=512
 
 EXPOSE 3001
 
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
 
