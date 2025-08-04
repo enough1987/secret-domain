@@ -475,6 +475,16 @@ Resources:
       DomainName: secret-domain.net
       ValidationMethod: DNS
 
+  SDNRoute53Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: "secret-domain.net."   # <-- Make sure the trailing dot is present
+      Name: "secret-domain.net."             # <-- Use subdomain if needed, e.g. www.secret-domain.net.
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt SDNCloudFront.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2         # <-- This is always the CloudFront hosted zone ID (global)
+
 Outputs:
   S3BucketName:
     Value: !Ref SDNBucket
