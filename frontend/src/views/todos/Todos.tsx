@@ -1,9 +1,9 @@
 import React from 'react'
 import { useParams } from 'react-router'
 import { TodosTypes } from '../../services/models';
-import TodosCompleted from './todos-completed/todos-completed';
-import TodosNotCompleted from './todos-not-completed/todos-not-completed';
-import TodosAdd from './todo-add/todo-add';
+import TodosCompleted from './todos-completed/Todos-completed';
+import TodosNotCompleted from './todos-not-completed/Todos-not-completed';
+import TodosAdd from './todo-add/Todo-add';
 import styles from './todos.module.scss'
 
 const Todos: React.FC = () => {

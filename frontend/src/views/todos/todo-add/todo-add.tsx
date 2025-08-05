@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Priority, type ITodo } from '../../../services/models'
 import { todoApi } from '../../../services/api/todoApi'
-import TodosNotCompleted from '../todos-not-completed/todos-not-completed'
+import TodosNotCompleted from '../todos-not-completed/Todos-not-completed'
 import styles from './todo-add.module.scss'
 
 const defaultTodo: Omit<ITodo, 'id' | 'created'> = {

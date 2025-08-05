@@ -1,6 +1,6 @@
 import React from 'react'
 import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../../services/api/todoApi'
-import Todo from '../todo/todo'
+import Todo from '../todo/Todo'
 import { LIMIT_TODO, type ITodo } from '../../../services/models'
 import styles from './todos-not-completed.module.scss'
 

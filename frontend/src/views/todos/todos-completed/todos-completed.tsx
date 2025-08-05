@@ -1,6 +1,6 @@
 import React from 'react'
 import { selectCompletedFromTodos, useGetTodosQuery } from '../../../services/api/todoApi'
-import Todo from '../todo/todo'
+import Todo from '../todo/Todo'
 import { LIMIT_TODO } from '../../../services/models'
 import styles from './todos-completed.module.scss'
 

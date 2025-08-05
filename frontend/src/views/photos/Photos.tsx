@@ -1,6 +1,6 @@
 import React from 'react'
 import { useGetPhotosQuery } from '../../services/api/photoApi'
-import Photo from './photo/photo'
+import Photo from './photo/Photo'
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from "react-virtualized-auto-sizer";
 import styles from './photos.module.scss'
