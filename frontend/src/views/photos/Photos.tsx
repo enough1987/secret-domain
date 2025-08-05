@@ -1,8 +1,9 @@
 import React from 'react'
 import { useGetPhotosQuery } from '../../services/api/photoApi'
-import Photo from './Photo'
+import Photo from './photo/photo'
 import { FixedSizeGrid as Grid } from 'react-window'
 import AutoSizer from "react-virtualized-auto-sizer";
+import styles from './photos.module.scss'
 
 const PHOTOS_PER_ROW = 4
 
@@ -10,20 +11,20 @@ const Photos: React.FC = () => {
   const { data, error, isLoading } = useGetPhotosQuery(100)
 
   if (isLoading) {
-    return <div className="p-8">Loading...</div>
+    return <div className={styles.loading}>Loading...</div>
   }
 
   if (error) {
-    return <div className="p-8 text-red-500">Error loading photos.</div>
+    return <div className={styles.error}>Error loading photos.</div>
   }
 
   const photos = data || []
   const rowCount = Math.ceil(photos.length / PHOTOS_PER_ROW)
 
   return (
-    <div className="p-8 min-h-screen flex flex-col">
-      <h1 className="text-2xl font-bold mb-4">Photos</h1>
-      <div style={{ flex: 1 }}>
+    <div className={styles.root}>
+      <h1 className={styles.title}>Photos</h1>
+      <div className={styles.gridContainer}>
         <AutoSizer>
           {({ height, width }: { height: number; width: number }) => (
             <Grid

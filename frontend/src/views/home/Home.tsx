@@ -1,6 +1,7 @@
 import React from 'react'
 import packageJson from '../../../package.json'
 import { useCheckHealthQuery } from '../../services/api/checkHealthApi'
+import styles from './home.module.scss'
 
 const buildVersion = import.meta.env.VITE_BUILD_VERSION
 
@@ -8,16 +9,16 @@ const Home: React.FC = () => {
   const { data: healthData } = useCheckHealthQuery();
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Home</h1>
-      <p className="text-gray-700">Welcome to the Home page!</p>
-      <p className="text-gray-700">Version {packageJson.version}</p>
-      <p className="text-gray-700">API Status: {healthData?.status ? 'Healthy' : 'Unhealthy'}</p>
-      <p className="text-gray-700">Health DB Check: {healthData?.db ? 'Healthy' : 'Unhealthy'}</p>
-      <p className="text-gray-700">Health Cache Check: {healthData?.cache ? 'Healthy' : 'Unhealthy'}</p>
-      <p className="text-gray-700">API Version: {healthData?.version || 'unknown'}</p>
+    <div className={styles.root}>
+      <h1 className={styles.title}>Home</h1>
+      <p className={styles.text}>Welcome to the Home page!</p>
+      <p className={styles.text}>Version {packageJson.version}</p>
+      <p className={styles.text}>API Status: {healthData?.status ? 'Healthy' : 'Unhealthy'}</p>
+      <p className={styles.text}>Health DB Check: {healthData?.db ? 'Healthy' : 'Unhealthy'}</p>
+      <p className={styles.text}>Health Cache Check: {healthData?.cache ? 'Healthy' : 'Unhealthy'}</p>
+      <p className={styles.text}>API Version: {healthData?.version || 'unknown'}</p>
       {buildVersion && (
-        <p className="text-gray-700">Build Version: {buildVersion}</p>
+        <p className={styles.text}>Build Version: {buildVersion}</p>
       )}
     </div>
   )

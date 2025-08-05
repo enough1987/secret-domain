@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import type { ITodo } from '../../services/models'
+import type { ITodo } from '../../../services/models'
 import { FaTrash, FaEdit } from 'react-icons/fa'
+import styles from './todo.module.scss'
 
 interface ITodoProps {
   item: ITodo | null,
@@ -19,34 +20,32 @@ const Todo: React.FC<ITodoProps> = ({ item, onUpdate, onDelete }) => {
   return (
     <li
       key={todo?.id}
-      className="bg-white rounded shadow p-3 flex items-center w-full"
+      className={styles.todoItem}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <input
         type="checkbox"
-        className="mr-3 cursor-pointer"
+        className={styles.checkbox}
         checked={todo?.completed}
         onChange={onChange}
         disabled={!todo || !(onUpdate || onDelete)}
       />
       {hovered && onUpdate ? (
         <input
-          className="border border-gray-200 px-1 py-1 mr-2 flex-1 box-border"
+          className={styles.input}
           value={todo?.title}
           onChange={e => setTodo(prev => prev ? { ...prev, title: e.target.value } : null)}
         />
       ) : (
         <span
-          className={todo?.completed 
-            ? 'line-through text-gray-400 px-1 py-1 mr-2 flex-1' 
-            : 'px-1 py-1 mr-2 flex-1'
-        }>
+          className={`${styles.title} ${todo?.completed ? styles.completed : ''}`}
+        >
           {todo?.title}
         </span>
       )}
       <button
-        className={`ml-auto mr-2 text-gray-500 hover:text-gray-700 cursor-pointer transition-opacity duration-150 ${hovered && onUpdate ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`${styles.actionBtn} ${hovered && onUpdate ? styles.actionBtnVisible : ''}`}
         title="Update"
         type="button"
         onClick={() => onUpdate?.(todo as ITodo)}
@@ -56,7 +55,7 @@ const Todo: React.FC<ITodoProps> = ({ item, onUpdate, onDelete }) => {
         <FaEdit />
       </button>
       <button
-        className={`text-gray-500 hover:text-gray-700 cursor-pointer transition-opacity duration-150 ${hovered && onDelete? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`${styles.actionBtnDelete} ${hovered && onDelete ? styles.actionBtnVisible : ''}`}
         title="Delete"
         type="button"
         onClick={() => onDelete?.(todo as ITodo)}

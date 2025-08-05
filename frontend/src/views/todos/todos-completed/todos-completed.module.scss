@@ -1,0 +1,15 @@
+.loading {
+  padding: 2rem;
+}
+
+.error {
+  padding: 2rem;
+  color: #ef4444; // Tailwind's red-500
+}
+
+.todoList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

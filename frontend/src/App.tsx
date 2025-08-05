@@ -1,10 +1,10 @@
 import { Outlet } from 'react-router'
-import './App.css'
-import Menu from './components/menu/Menu'
+import Menu from './components/menu/menu'
+import styles from './app.module.scss'
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={styles.appRoot}>
       <Menu />
       <Outlet />
     </div>

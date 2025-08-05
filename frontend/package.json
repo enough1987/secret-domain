@@ -19,7 +19,7 @@
     "react-router": "^7.6.2",
     "react-virtualized-auto-sizer": "^1.0.26",
     "react-window": "^1.8.11",
-    "tailwindcss": "^4.1.10"
+    "sass": "^1.89.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

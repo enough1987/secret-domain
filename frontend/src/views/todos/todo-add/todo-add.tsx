@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { Priority, type ITodo } from '../../services/models'
-import { todoApi } from '../../services/api/todoApi'
-import TodosNotCompleted from './TodosNotCompleted'
+import { Priority, type ITodo } from '../../../services/models'
+import { todoApi } from '../../../services/api/todoApi'
+import TodosNotCompleted from '../todos-not-completed/todos-not-completed'
+import styles from './todo-add.module.scss'
 
 const defaultTodo: Omit<ITodo, 'id' | 'created'> = {
   title: '',
@@ -22,9 +23,9 @@ const TodoAdd: React.FC = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 mb-4 w-full max-w-sm">
+      <form onSubmit={handleSubmit} className={styles.form}>
         <input
-          className="border border-gray-300 rounded px-2 py-1 w-full box-border"
+          className={styles.input}
           type="text"
           placeholder="Add new todo..."
           value={todo.title}
@@ -32,7 +33,7 @@ const TodoAdd: React.FC = () => {
           disabled={isLoading}
         />
         <select
-          className="border border-gray-300 rounded px-2 py-1 w-full box-border"
+          className={styles.select}
           value={todo.priority}
           onChange={e => setTodo(prev => ({ ...prev, priority: e.target.value as Priority }))}
           disabled={isLoading}
@@ -43,7 +44,7 @@ const TodoAdd: React.FC = () => {
         </select>
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition w-full"
+          className={styles.button}
           disabled={isLoading}
         >
           Add

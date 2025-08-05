@@ -1,0 +1,32 @@
+.root {
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.section {
+  /* Add section-specific styles if needed */
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.info {
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280; // Tailwind's gray-500
+}
+
+.todoList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}

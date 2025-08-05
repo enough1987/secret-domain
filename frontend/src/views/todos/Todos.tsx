@@ -1,25 +1,25 @@
 import React from 'react'
 import { useParams } from 'react-router'
 import { TodosTypes } from '../../services/models';
-import TodosCompleted from './TodosCompleted';
-import TodosNotCompleted from './TodosNotCompleted';
-import TodosAdd from './TodoAdd';
+import TodosCompleted from './todos-completed/todos-completed';
+import TodosNotCompleted from './todos-not-completed/todos-not-completed';
+import TodosAdd from './todo-add/todo-add';
+import styles from './todos.module.scss'
 
 const Todos: React.FC = () => {
-    const { type } = useParams<{ type: string }>()
+  const { type } = useParams<{ type: string }>()
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Todos</h1>
-      <div>
-        <h2 className="text-xl font-semibold mb-2">
-            { type === TodosTypes.COMLETED && 'Completed'}
-            { type === TodosTypes.NOT_COMLETED && 'Not Completed'}
-            { (type !== TodosTypes.COMLETED && type !== TodosTypes.NOT_COMLETED) && 'Add Todos'}
+    <div className={styles.root}>
+      <h1 className={styles.title}>Todos</h1>
+      <div className={styles.section}>
+        <h2 className={styles.subtitle}>
+          {type === TodosTypes.COMLETED && 'Completed'}
+          {type === TodosTypes.NOT_COMLETED && 'Not Completed'}
+          {(type !== TodosTypes.COMLETED && type !== TodosTypes.NOT_COMLETED) && 'Add Todos'}
         </h2>
-        <div className="mb-4 text-sm text-gray-500">
-        </div>
-        <ul className="space-y-2 w-full">
+        <div className={styles.info}></div>
+        <ul className={styles.todoList}>
           {type === TodosTypes.COMLETED && <TodosCompleted />}
           {type === TodosTypes.NOT_COMLETED && <TodosNotCompleted />}
           {(type !== TodosTypes.COMLETED && type !== TodosTypes.NOT_COMLETED) && <TodosAdd />}

@@ -1,7 +1,8 @@
 import React from 'react'
-import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../services/api/todoApi'
-import Todo from './Todo'
-import { LIMIT_TODO, type ITodo } from '../../services/models'
+import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../../services/api/todoApi'
+import Todo from '../todo/todo'
+import { LIMIT_TODO, type ITodo } from '../../../services/models'
+import styles from './todos-not-completed.module.scss'
 
 const TodosNotCompleted: React.FC = () => {
   const { data, error, isLoading } = useGetTodosQuery(LIMIT_TODO, {
@@ -20,15 +21,15 @@ const TodosNotCompleted: React.FC = () => {
   }
 
   if (isLoading) {
-    return <div className="p-8">Loading...</div>
+    return <div className={styles.loading}>Loading...</div>
   }
 
   if (error) {
-    return <div className="p-8 text-red-500">Error loading todos.</div>
+    return <div className={styles.error}>Error loading todos.</div>
   }
 
   return (
-    <ul className="space-y-2 w-full">
+    <ul className={styles.todoList}>
             {data?.map(todo => (
               <Todo key={todo.id} item={todo} onUpdate={onUpdate} onDelete={onDelete} />
             ))}

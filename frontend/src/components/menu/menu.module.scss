@@ -1,0 +1,24 @@
+.menuNav {
+  background: var(--color-menu-bg); // Tailwind's bg-blue-300
+  padding: 1rem;       // Tailwind's p-4
+}
+
+.menuList {
+  display: flex;
+  gap: 1.5rem;         // Tailwind's space-x-6
+  color: var(--color-menu-text);        // Tailwind's text-white
+  font-weight: 600;    // Tailwind's font-semibold
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menuLink {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

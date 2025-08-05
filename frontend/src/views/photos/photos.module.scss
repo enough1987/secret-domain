@@ -1,0 +1,25 @@
+.root {
+  padding: 2rem;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.gridContainer {
+  flex: 1;
+}
+
+.loading,
+.error {
+  padding: 2rem;
+}
+
+.error {
+  color: #ef4444; // Tailwind's red-500
+}
