@@ -1,7 +1,7 @@
 # RTK-Query
 
 A demo React application using Redux Toolkit Query (RTK Query) for efficient data fetching, caching, and state management.  
-This project showcases CRUD operations for todos and photos, integration with a mock REST API (nestjs + postgres), and modern UI with Tailwind CSS.
+This project showcases CRUD operations for todos and photos, integration with a mock REST API (nestjs + postgres), and modern UI with SCSS.
 
 ## Features
 
@@ -9,7 +9,7 @@ This project showcases CRUD operations for todos and photos, integration with a 
 - Filter todos by completion status
 - View and manage photos
 - Uses RTK Query for API calls and caching
-- Styled with Tailwind CSS
+- Styled with SCSS
 - Mock backend with json-server
 
 ## Tech Stack
@@ -17,16 +17,17 @@ This project showcases CRUD operations for todos and photos, integration with a 
 - React
 - Redux Toolkit & RTK Query
 - TypeScript
-- Tailwind CSS
 
 ## Getting Started
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Set up the backend:
+
    - For local development, ensure your backend (NestJS + Postgres) is running and accessible. By default, the frontend expects the API at `http://localhost:3001`.
    - For production, set the `VITE_API_URL` environment variable to your deployed backend URL before building:
      ```bash
@@ -34,6 +35,7 @@ This project showcases CRUD operations for todos and photos, integration with a 
      ```
 
 3. Start the React app (development mode):
+
    ```bash
    npm run dev
    ```
