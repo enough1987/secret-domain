@@ -1,6 +1,6 @@
 import React from 'react'
-import type { IPhoto } from '@src/services/models'
-import DEFAULT_URL from '@src/assets/no-image.png'
+import type { IPhoto } from '../../../services/models.ts'
+import DEFAULT_URL from '../../../assets/no-image.png'
 import styles from './photo.module.scss'
 
 interface PhotoProps {
