@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router'
 import { MenuRoutes } from '../../services/models'
-import styles from './menu.module.scss'
+import styles from './Menu.module.scss'
 
 const Menu: React.FC = () => (
   <nav className={styles.menuNav}>
