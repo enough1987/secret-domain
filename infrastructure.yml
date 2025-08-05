@@ -413,7 +413,7 @@ Resources:
           - DomainName: !GetAtt SDNFrontendNextEC2Instance.PublicDnsName
             Id: SDNFrontendNextOrigin
             CustomOriginConfig:
-              HTTPPort: 4000
+              HTTPPort: 80
               HTTPSPort: 443
               OriginProtocolPolicy: http-only
         DefaultCacheBehavior:
