@@ -1,7 +1,7 @@
 import React from 'react'
 import packageJson from '../../../package.json'
 import { useCheckHealthQuery } from '../../services/api/checkHealthApi'
-import styles from './home.module.scss'
+import styles from './Home.module.scss'
 
 const buildVersion = import.meta.env.VITE_BUILD_VERSION
 

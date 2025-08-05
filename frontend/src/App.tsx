@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router'
 import Menu from './components/menu/Menu'
-import styles from './app.module.scss'
+import styles from './App.module.scss'
 
 function App() {
   return (

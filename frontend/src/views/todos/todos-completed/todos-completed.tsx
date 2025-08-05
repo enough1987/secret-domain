@@ -2,7 +2,7 @@ import React from 'react'
 import { selectCompletedFromTodos, useGetTodosQuery } from '../../../services/api/todoApi'
 import Todo from '../todo/Todo'
 import { LIMIT_TODO } from '../../../services/models'
-import styles from './todos-completed.module.scss'
+import styles from './Todos-completed.module.scss'
 
 const TodosCompleted: React.FC = () => {
   const { data, error, isLoading } = useGetTodosQuery(LIMIT_TODO, {

@@ -2,7 +2,7 @@ import React from 'react'
 import { selectNotCompletedFromTodos, useDeleteTodoMutation, useGetTodosQuery, useUpdateTodoMutation } from '../../../services/api/todoApi'
 import Todo from '../todo/Todo'
 import { LIMIT_TODO, type ITodo } from '../../../services/models'
-import styles from './todos-not-completed.module.scss'
+import styles from './Todos-not-completed.module.scss'
 
 const TodosNotCompleted: React.FC = () => {
   const { data, error, isLoading } = useGetTodosQuery(LIMIT_TODO, {

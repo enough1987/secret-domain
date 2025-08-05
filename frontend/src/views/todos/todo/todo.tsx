@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { ITodo } from '../../../services/models'
 import { FaTrash, FaEdit } from 'react-icons/fa'
-import styles from './todo.module.scss'
+import styles from './Todo.module.scss'
 
 interface ITodoProps {
   item: ITodo | null,

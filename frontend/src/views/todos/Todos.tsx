@@ -4,7 +4,7 @@ import { TodosTypes } from '../../services/models';
 import TodosCompleted from './todos-completed/Todos-completed';
 import TodosNotCompleted from './todos-not-completed/Todos-not-completed';
 import TodosAdd from './todo-add/Todo-add';
-import styles from './todos.module.scss'
+import styles from './Todos.module.scss'
 
 const Todos: React.FC = () => {
   const { type } = useParams<{ type: string }>()
