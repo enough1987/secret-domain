@@ -1,7 +1,7 @@
 "use client";
 import { getAIResponse } from "@/api/ai";
 import { useState } from "react";
-import styles from "./ai-client.module.scss";
+import styles from "./AiClient.module.scss";
 
 export default function AIClient() {
   const [input, setInput] = useState("");
