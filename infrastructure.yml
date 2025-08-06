@@ -465,7 +465,7 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
-          - PathPattern: /_next/*
+          - PathPattern: /next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
             AllowedMethods: [GET, HEAD, OPTIONS]
@@ -477,7 +477,7 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
-          - PathPattern: /next/*
+          - PathPattern: /_next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
             AllowedMethods: [GET, HEAD, OPTIONS]
