@@ -1,5 +1,5 @@
 
-import AIClient from "@/components/ai-client/ai-client";
+import AIClient from "@/components/aiClient/AiClient";
 import styles from "./page.module.scss";
 
 export default function Home() {

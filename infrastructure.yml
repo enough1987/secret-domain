@@ -428,6 +428,18 @@ Resources:
           Compress: true # <-- Enable compression here
         CacheBehaviors:
           # Route /api/* requests to backend API (EC2)
+          - PathPattern: /api
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
           - PathPattern: /api/*
             TargetOriginId: ApiOrigin
             ViewerProtocolPolicy: redirect-to-https
@@ -441,6 +453,30 @@ Resources:
             MinTTL: 0
             MaxTTL: 0
           # Route /next/* requests to frontend (Next.js)
+          - PathPattern: /next
+            TargetOriginId: SDNFrontendNextOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+          - PathPattern: /_next/*
+            TargetOriginId: SDNFrontendNextOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
           - PathPattern: /next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
