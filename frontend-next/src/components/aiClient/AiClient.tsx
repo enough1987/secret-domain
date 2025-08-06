@@ -15,31 +15,34 @@ export default function AIClient() {
 
     // Call your API route or backend function here
     const res = await getAIResponse(input);
-    setAiMessage(res || "No response");
+    setAiMessage(res.data || "No response");
     setLoading(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className={styles.aiForm}>
-      <input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        placeholder="Ask something..."
-        className={styles.aiInput}
-      />
-      <button
-        type="submit"
-        disabled={loading || !input}
-        className={styles.aiButton}
-      >
-        {loading ? "Thinking..." : "Ask AI"}
-      </button>
-      {aiMessage && (
-        <div className={styles.aiResponse}>
-          <strong>AI says:</strong>
-          <div>{aiMessage}</div>
-        </div>
-      )}
+    <div className={styles.aiClient}>
+      <h2>AI Integration Example</h2>
+      <form onSubmit={handleSubmit} className={styles.aiForm}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Ask something..."
+          className={styles.aiInput}
+        />
+        <button
+          type="submit"
+          disabled={loading || !input}
+          className={styles.aiButton}
+        >
+          {loading ? "Thinking..." : "Ask AI"}
+        </button>
+        {aiMessage && (
+          <div className={styles.aiResponse}>
+            <strong>AI says:</strong>
+            <div>{aiMessage}</div>
+          </div>
+        )}
     </form>
+    </div>
   );
 }
