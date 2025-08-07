@@ -456,7 +456,7 @@ Resources:
           - PathPattern: /next
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods: [GET, HEAD, OPTIONS]
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
             CachedMethods: [GET, HEAD, OPTIONS]
             ForwardedValues:
               QueryString: true
@@ -468,7 +468,7 @@ Resources:
           - PathPattern: /next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods: [GET, HEAD, OPTIONS]
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
             CachedMethods: [GET, HEAD, OPTIONS]
             ForwardedValues:
               QueryString: true
@@ -480,7 +480,7 @@ Resources:
           - PathPattern: /_next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods: [GET, HEAD, OPTIONS]
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
             CachedMethods: [GET, HEAD, OPTIONS]
             ForwardedValues:
               QueryString: true
