@@ -9,7 +9,7 @@ export const MenuRoutes = [
   { to: `https://secret-domain.net/todos/${TodosTypes.NOT_COMLETED}`, title: 'Todos not completed' },
   { to: `https://secret-domain.net/todos/${TodosTypes.COMLETED}`, title: 'Todos completed' },
   { to: 'https://secret-domain.net/photos', title: 'Photos' },
-  { to: '/next', title: 'Next' },
+  { to: '/', title: 'Next' },
 ]
 
-export const BASE_NEXT_AUTH_URL = '/next/api/auth';
+export const AUTH_NEXT_BASE_URL = "/next/api/auth"

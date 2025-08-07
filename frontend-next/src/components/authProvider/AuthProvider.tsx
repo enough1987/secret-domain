@@ -1,11 +1,11 @@
 "use client"
 
-import { BASE_NEXT_AUTH_URL } from "@/api/models"
+import { AUTH_NEXT_BASE_URL } from "@/api/models"
 import { SessionProvider } from "next-auth/react"
 
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  return <SessionProvider basePath={BASE_NEXT_AUTH_URL}>
+  return <SessionProvider basePath={AUTH_NEXT_BASE_URL}>
     {children}
   </SessionProvider>
 }
