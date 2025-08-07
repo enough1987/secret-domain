@@ -426,7 +426,20 @@ Resources:
             Cookies:
               Forward: none
           Compress: true # <-- Enable compression here
-        CacheBehaviors:
+        CacheBehaviors:   
+          # NextAuth use /api/auth/ directly
+          - PathPattern: /api/auth/*
+            TargetOriginId: SDNFrontendNextOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD, OPTIONS]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api
             TargetOriginId: ApiOrigin
