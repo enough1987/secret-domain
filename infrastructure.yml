@@ -509,6 +509,10 @@ Resources:
             Locations:
               - BG   # Bulgaria
               - UA   # Ukraine
+        Logging:
+          Bucket: sdn-cloudfront-logs.s3.amazonaws.com   # Replace with your S3 bucket name
+          Prefix: logs/                                 # Optional: folder prefix for logs
+          IncludeCookies: true                          # Optional: log cookies
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
