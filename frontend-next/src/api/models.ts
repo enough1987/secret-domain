@@ -11,3 +11,5 @@ export const MenuRoutes = [
   { to: 'https://secret-domain.net/photos', title: 'Photos' },
   { to: '/next', title: 'Next' },
 ]
+
+export const BASE_NEXT_AUTH_URL = '/next/api/auth';
