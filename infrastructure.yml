@@ -503,6 +503,12 @@ Resources:
             ResponsePagePath: /index.html
             ResponseCode: 200
             ErrorCachingMinTTL: 0
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: whitelist
+            Locations:
+              - BG   # Bulgaria
+              - UA   # Ukraine
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
