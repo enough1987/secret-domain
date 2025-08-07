@@ -508,11 +508,7 @@ Resources:
             RestrictionType: whitelist
             Locations:
               - BG   # Bulgaria
-              - UA   # Ukraine
-        Logging:
-          Bucket: sdn-cloudfront-logs
-          Prefix: logs/
-          IncludeCookies: true                        # Optional: log cookies
+              - UA   # Ukraine                     # Optional: log cookies
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
