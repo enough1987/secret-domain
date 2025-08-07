@@ -1,6 +1,9 @@
 
-import AIClient from "@/components/aiClient/AiClient";
+import dynamic from 'next/dynamic'
+
 import styles from "./page.module.scss";
+// This component will only be loaded when rendered
+const AIClient = dynamic(() => import('@/components/aiClient/AiClient'))
 
 export default function Home() {
   return (

@@ -5,8 +5,9 @@
 
 .menuList {
   display: flex;
+  align-items: center;
   gap: 1.5rem;         // Tailwind's space-x-6
-  color: var(--color-menu-text);        // Tailwind's text-white
+  color: var(--color-text);        // Tailwind's text-white
   font-weight: 600;    // Tailwind's font-semibold
   list-style: none;
   margin: 0;
@@ -20,5 +21,13 @@
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+.menuProfile {
+  color: var(--color-text-secondary); // Tailwind's gray-700
+  margin-left: auto;
+  &:hover {
+    cursor: pointer;
   }
 }

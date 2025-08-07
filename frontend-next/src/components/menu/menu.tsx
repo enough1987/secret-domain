@@ -2,6 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import { MenuRoutes } from '@/api/models'
 import styles from './menu.module.scss'
+import Profile from '../profile/Profile'
 
 const Menu: React.FC = () => (
   <nav className={styles.menuNav}>
@@ -23,6 +24,9 @@ const Menu: React.FC = () => (
           )}
         </li>
       ))}
+      <li className={styles.menuProfile}>
+        <Profile />
+      </li>
     </ul>
   </nav>
 )
