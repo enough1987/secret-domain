@@ -6,6 +6,34 @@ networks:
     driver: bridge
 
 services:
+  nginx:
+    image: nginx:alpine  # Use official Nginx image
+    container_name: nginx  # Name the container 'nginx'
+    ports:
+      - "0.0.0.0:80:80"  # Expose port 80 on host and map to container
+      - "0.0.0.0:443:443"  # Expose port 443 on host and map to container
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Mount custom Nginx config
+      - ./logs:/var/log/nginx  # Persist Nginx logs to host
+    environment:
+      - NGINX_ENTRYPOINT_QUIET_LOGS=0  # Show entrypoint logs
+      - NGINX_ERROR_LOG_LEVEL=debug    # Set error log level
+    depends_on:
+      - frontend-next   # Wait for frontend-next to be ready
+    networks:
+      - dev  # Attach to 'dev' network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/next"]  # Health check for Nginx
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"  # Use JSON file logging
+      options:
+        max-size: "10m"    # Max log file size
+        max-file: "3"      # Max number of log files
+    restart: unless-stopped  # Always restart unless stopped manually
+
   frontend-next:
     image: ${FRONTEND_NEXT_IMAGE}
     container_name: frontend-next
