@@ -514,11 +514,6 @@ Resources:
           Prefix: logs/
           IncludeCookies: true                        # Optional: log cookies
 
-  SDNCloudFrontLogsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: sdn-cloudfront-logs
-
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
     Type: AWS::CertificateManager::Certificate
