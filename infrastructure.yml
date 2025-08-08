@@ -196,10 +196,10 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
     Properties:
-      BucketName: !Sub sdn-frontend-csr-${AWS::AccountId}-${AWS::Region}
+      BucketName: !Sub sdn-frontend-spa-${AWS::AccountId}-${AWS::Region}
       Tags:
         - Key: Name
-          Value: !Sub sdn-frontend-csr-${AWS::AccountId}-${AWS::Region}
+          Value: !Sub sdn-frontend-spa-${AWS::AccountId}-${AWS::Region}
 
   # EC2 instance for backend deployment
   SDNEC2Instance:
@@ -369,7 +369,7 @@ Resources:
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
-            Resource: !Sub arn:aws:s3:::sdn-frontend-csr-${AWS::AccountId}-${AWS::Region}/*
+            Resource: !Sub arn:aws:s3:::sdn-frontend-spa-${AWS::AccountId}-${AWS::Region}/*
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SDNCloudFront}
