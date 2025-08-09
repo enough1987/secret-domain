@@ -509,6 +509,28 @@ Resources:
             Locations:
               - BG   # Bulgaria
               - UA   # Ukraine                     # Optional: log cookies
+        Logging:
+          Bucket: sdn-cloudfront-logs
+          Prefix: logs/
+          IncludeCookies: true
+        RealTimeLogConfigArn: !GetAtt SDNCloudFrontRealtimeLogConfig.Arn
+
+  SDNCloudFrontRealtimeLogConfig:
+    Type: AWS::CloudFront::RealtimeLogConfig
+    Properties:
+      EndPoints:
+        - StreamType: Kinesis
+          KinesisStreamConfig:
+            RoleArn: arn:aws:iam::<your-account-id>:role/<role-for-cloudfront-logs>
+            StreamArn: arn:aws:kinesis:<region>:<your-account-id>:stream/<your-stream-name>
+      Fields:
+        - timestamp
+        - c-ip
+        - cs-method
+        - cs-uri-stem
+        - sc-status
+      Name: SDNCloudFrontRealtimeLogConfig
+      SamplingRate: 100
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:
