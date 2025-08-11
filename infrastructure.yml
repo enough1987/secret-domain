@@ -424,7 +424,7 @@ Resources:
           ForwardedValues:
             QueryString: false
             Cookies:
-              Forward: none
+              Forward: all
           Compress: true # <-- Enable compression here
         CacheBehaviors:
           # Route /next/* requests to frontend (Next.js)
@@ -508,7 +508,7 @@ Resources:
             RestrictionType: whitelist
             Locations:
               - BG   # Bulgaria
-              - UA   # Ukraine                     # Optional: log cookies@@
+              - UA   # Ukraine
 
   # ACM certificate for custom domain (must be validated manually in AWS Console)
   SDNCertificate:

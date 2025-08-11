@@ -1,24 +1,27 @@
 .page {
-  display: grid;
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-items: center;
   font-family: var(--font-geist-sans);
-  padding: 0.5rem;
+  padding: 1rem;
   padding-top: 1.5rem;
 }
 
 .main {
-  width: 100%;  
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  grid-row-start: 2;
+  flex: 1;
 }
 
 .footer {
-  grid-row-start: 3;
   display: flex;
   gap: 1.5rem;
+  /* No need for grid-row-start */
+  /* It will naturally be at the bottom */
 }
 
 @media (max-width: 600px) {
