@@ -1,14 +1,25 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useSession, signIn } from "next-auth/react"
+import styles from "./Profile.module.scss"
 
 export default function Profile() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
-  console.log("Profile", session)
+  if (status === "loading") {
+    return <div>Loading...</div>
+  }
+
+  console.log("Profile : ", session)
 
   if (!session) {
-    return <div></div>
+    return (
+      <div>
+        <button className={styles.loginButton} onClick={() => signIn()}>
+          Log in
+        </button>
+      </div>
+    )
   }
 
   return (
