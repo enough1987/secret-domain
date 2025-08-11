@@ -427,6 +427,7 @@ Resources:
               Forward: all
           Compress: true # <-- Enable compression here
           OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6         # CachingOptimized
         CacheBehaviors:
           # Route /next/* requests to frontend (Next.js)
           - PathPattern: /next
@@ -441,6 +442,9 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
+            OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # Forward all headers
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6         # CachingOptimized
+
           - PathPattern: /next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
@@ -453,7 +457,8 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
-            OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
+            OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # Forward all headers
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6         # CachingOptimized
 
           - PathPattern: /_next/*
             TargetOriginId: SDNFrontendNextOrigin
