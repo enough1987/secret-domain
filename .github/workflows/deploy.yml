@@ -234,8 +234,8 @@ jobs:
 
       - name: Copy .env to EC2
         run: |
-          echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" > .env
-          echo "${{ secrets.FRONTEND_NEXT_ENV }}" >> .env
+          echo "${{ secrets.FRONTEND_NEXT_ENV }}" > .env
+          echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master

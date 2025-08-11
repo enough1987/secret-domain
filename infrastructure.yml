@@ -426,6 +426,7 @@ Resources:
             Cookies:
               Forward: all
           Compress: true # <-- Enable compression here
+          OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
         CacheBehaviors:
           # Route /next/* requests to frontend (Next.js)
           - PathPattern: /next
@@ -452,6 +453,8 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
+            OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
+
           - PathPattern: /_next/*
             TargetOriginId: SDNFrontendNextOrigin
             ViewerProtocolPolicy: redirect-to-https
@@ -464,6 +467,8 @@ Resources:
             DefaultTTL: 0
             MinTTL: 0
             MaxTTL: 0
+            OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
+            
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api
             TargetOriginId: ApiOrigin
