@@ -473,7 +473,8 @@ Resources:
             MinTTL: 0
             MaxTTL: 0
             OriginRequestPolicyId: 21661f94-5c7a-47e4-b989-5492eafa07d3 # <-- Forward all headers
-            
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6         # CachingOptimized
+
           # Route /api/* requests to backend API (EC2)
           - PathPattern: /api
             TargetOriginId: ApiOrigin
