@@ -264,10 +264,6 @@ jobs:
 
             cd ~/
 
-            # Set up environment variables
-            echo "${{ secrets.FRONTEND_NEXT_ENV }}" > .env
-            echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
-
             # Clean up unused Docker resources
             sudo docker system prune -af
 
