@@ -232,11 +232,6 @@ jobs:
         run: |
           scp -i /tmp/ec2_key.pem -o StrictHostKeyChecking=no frontend-next/docker-compose.yml frontend-next/nginx.conf ec2-user@${{ env.EC2_HOST }}:~/
 
-      - name: Copy .env to EC2
-        run: |
-          echo "${{ secrets.FRONTEND_NEXT_ENV }}" > .env
-          echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" >> .env
-
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -263,6 +258,9 @@ jobs:
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
             cd ~/
+
+            echo "FRONTEND_NEXT_IMAGE=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/sdn-frontend-next-${{ secrets.AWS_ACCOUNT_ID }}-${{ secrets.AWS_REGION }}:latest" > .env
+            echo "${{ secrets.FRONTEND_NEXT_ENV }}" >> .env
 
             # Clean up unused Docker resources
             sudo docker system prune -af
