@@ -2,11 +2,16 @@
 
 import { AUTH_NEXT_BASE_URL } from "@/api/models"
 import { SessionProvider } from "next-auth/react"
-
+import { config as appConfig } from '@/configs/configs';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  console.log("AuthProvider", AUTH_NEXT_BASE_URL);
-  return <SessionProvider basePath={AUTH_NEXT_BASE_URL}>
-    {children}
-  </SessionProvider>
+  if (appConfig.disableAuth) {
+    return <>{children}</>
+  }
+
+  return (
+    <SessionProvider basePath={AUTH_NEXT_BASE_URL}>
+      {children}
+    </SessionProvider>
+  );
 }

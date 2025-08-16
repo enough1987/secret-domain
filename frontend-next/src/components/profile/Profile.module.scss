@@ -1,6 +1,6 @@
-.loginButton {
-  background-color: var(--color-main-button);
-  color: var(--color-white);
+.authButton {
+  background-color: var(--color-menu-bg);
+  color: var(--color-text);
   padding: 0.5em 1.5em;
   border: none;
   border-radius: 4px;
@@ -9,6 +9,10 @@
   transition: background 0.2s;
 }
 
-.loginButton:hover {
-  background-color: var(--color-main-button-hover);
+.authButton:hover {
+  color: var(--color-text-secondary);
+}
+
+.loading {
+     color: var(--color-text); 
 }

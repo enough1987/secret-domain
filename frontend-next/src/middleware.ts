@@ -1,11 +1,17 @@
-import { withAuth } from "next-auth/middleware"
+import { withAuth } from "next-auth/middleware";
+import { NextRequest, NextResponse } from "next/server";
+import { config as appConfig } from '@/configs/configs';
 
-export default withAuth({
-  pages: {
-    signIn: "/auth/signin", // Redirect unauthenticated users here
-  },
-})
+const middleware = appConfig.disableAuth
+  ? (_req: NextRequest) => NextResponse.next()
+  : withAuth({
+      pages: {
+        signIn: "/auth/signin",
+      },
+    });
+
+export default middleware;
 
 export const config = {
-  matcher: ["/:path*", "/:path*"], // Only these routes require auth
-}
+  matcher: ["/:path*"],
+};
