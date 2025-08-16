@@ -426,6 +426,9 @@ Resources:
             Cookies:
               Forward: all
           Compress: true
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SDNCloudFrontFunction.FunctionARN
 
         CacheBehaviors:
           # Route /next/* requests to frontend (Next.js)
@@ -530,6 +533,32 @@ Resources:
       AliasTarget:
         DNSName: !GetAtt SDNCloudFront.DomainName
         HostedZoneId: Z2FDTNDATAQYW2         # <-- This is always the CloudFront hosted zone ID (global)
+
+  # Add this to your CloudFormation
+  SDNCloudFrontFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: sdn-spa-router
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          
+          // If URI has file extension (like .js, .css, .png), don't redirect
+          if (uri.match(/\.[a-z0-9]+$/i)) {
+            return request;
+          }
+          
+          // If URI doesn't have extension, serve index.html (SPA routing)
+          if (!uri.endsWith('/') && !uri.includes('.')) {
+            request.uri = '/index.html';
+          }
+          
+          return request;
+        }
+      FunctionConfig:
+        Comment: "SPA router function"
+        Runtime: cloudfront-js-1.0
 
 Outputs:
   S3BucketName:
