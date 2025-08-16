@@ -498,15 +498,15 @@ Resources:
           SslSupportMethod: sni-only
         Aliases:
           - secret-domain.net
-        CustomErrorResponses:
-          - ErrorCode: 404
-            ResponsePagePath: /index.html
-            ResponseCode: 200
-            ErrorCachingMinTTL: 0
-          - ErrorCode: 403
-            ResponsePagePath: /index.html
-            ResponseCode: 200
-            ErrorCachingMinTTL: 0
+        # CustomErrorResponses:
+        #   - ErrorCode: 404
+        #     ResponsePagePath: /index.html
+        #     ResponseCode: 200
+        #     ErrorCachingMinTTL: 0
+        #   - ErrorCode: 403
+        #     ResponsePagePath: /index.html
+        #     ResponseCode: 200
+        #     ErrorCachingMinTTL: 0
         Restrictions:
           GeoRestriction:
             RestrictionType: whitelist
