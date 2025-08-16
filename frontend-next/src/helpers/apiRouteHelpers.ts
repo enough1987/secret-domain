@@ -35,13 +35,13 @@ export function getIpChain(req: NextRequest): string {
 
   // Log all possible headers for debugging
   console.log(
-    "Current IP:", currentIp,
-    "cf-connecting-ip:", req.headers.get("cf-connecting-ip"),
-    "x-real-ip:", req.headers.get("x-real-ip"),
-    "x-client-ip:", req.headers.get("x-client-ip"),
-    "x-ms-client-ip:", req.headers.get("x-ms-client-ip"),
-    "x-forwarded-for:", req.headers.get("x-forwarded-for"),
-    "forwarded:", req.headers.get("forwarded")
+    `[ Current IP:  ${currentIp} ]`,
+    `[ cf-connecting-ip: ${req.headers.get("cf-connecting-ip")} ]`,
+    `[ x-real-ip: ${req.headers.get("x-real-ip")} ]`,
+    `[ x-client-ip: ${req.headers.get("x-client-ip")} ]`,
+    `[ x-ms-client-ip: ${req.headers.get("x-ms-client-ip")} ]`,
+    `[ x-forwarded-for: ${req.headers.get("x-forwarded-for")} ]`,
+    `[ forwarded: ${req.headers.get("forwarded")} ]`
   );
 
   // Build the full IP chain from x-forwarded-for
