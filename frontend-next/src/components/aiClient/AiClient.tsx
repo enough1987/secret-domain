@@ -1,5 +1,5 @@
 "use client";
-import { getAIResponse } from "@/api/ai";
+// import { getAIResponse } from "@/api/ai";
 import { useState } from "react";
 import styles from "./AiClient.module.scss";
 
@@ -14,8 +14,17 @@ export default function AIClient() {
     setAiMessage(null);
 
     // Call your API route or backend function here
-    const res = await getAIResponse(input);
-    setAiMessage(res.data || "No response");
+    //const res = await getAIResponse(input);
+    //setAiMessage(res.data || "No response");
+
+    // Call your API route instead of getAIResponse
+    const res = await fetch("/next/api/ai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ inputs: input }),
+    });
+    const response = await res.json();
+    setAiMessage(response.data || "No response");
     setLoading(false);
   }
 

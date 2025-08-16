@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { MenuRoutes } from '@/api/models'
 import styles from './menu.module.scss'
 import Profile from '../profile/Profile'
-import { config as appConfig } from '@/configs/configs';
+import { appConfig } from '@/configs/appConfig';
 
 const Menu: React.FC = () => (
   <nav className={styles.menuNav}>

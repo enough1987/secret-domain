@@ -1,9 +1,9 @@
 
 
-type Config = {
+type AppConfig = {
     disableAuth: boolean;
 };
 
-export const config: Config = {
+export const appConfig: AppConfig = {
     disableAuth: true
 };

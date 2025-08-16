@@ -1,6 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextRequest, NextResponse } from "next/server";
-import { config as appConfig } from '@/configs/configs';
+import { appConfig } from '@/configs/appConfig';
 
 const middleware = appConfig.disableAuth
   ? (_req: NextRequest) => NextResponse.next()
